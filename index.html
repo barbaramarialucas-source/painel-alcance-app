@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel Alcance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baskervville:ital@0;1&family=Poppins:wght@300;400;500;600&display=swap">
+<style>
+:root{
+  --vinho:#841b2e; --vinho-fundo:#5e1320; --creme:#f7e7ce; --creme-claro:#fdf7ee;
+  --ouro:#cfbd96; --ouro-escuro:#a48151; --tinta:#2b2024; --tinta-fraca:#6f6166;
+  --linha:#e7dcc9; --branco:#fffdf9;
+  --ok:#2e7d52; --alerta:#c98a16; --perigo:#b3261e; --info:#3a5a8c;
+  --serif:'Baskervville',Georgia,serif; --sans:'Poppins',system-ui,sans-serif;
+  --r:10px; --sombra:0 1px 2px rgba(43,32,36,.06),0 8px 24px rgba(43,32,36,.06);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:var(--sans);font-weight:300;color:var(--tinta);background:var(--creme-claro);font-size:14px;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--serif);font-weight:400;margin:0;letter-spacing:.01em}
+a{color:var(--vinho)}
+.oculto{display:none !important}
+
+/* ---------- LOGIN ---------- */
+#tela-login{min-height:100%;display:grid;place-items:center;padding:24px;
+  background:radial-gradient(1200px 600px at 50% -10%,#9c2238 0%,var(--vinho-fundo) 60%,#430d17 100%)}
+.cartao-login{width:100%;max-width:380px;background:var(--branco);border-radius:16px;padding:36px 30px;box-shadow:0 30px 70px rgba(0,0,0,.35)}
+.marca{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:26px}
+.selo{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-size:24px;color:#fff;
+  background:linear-gradient(135deg,var(--ouro) 0%,var(--ouro-escuro) 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.marca h1{font-size:25px;color:var(--vinho)}
+.marca span{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--ouro-escuro)}
+.campo{display:block;margin-bottom:14px}
+.campo span{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta-fraca);margin-bottom:6px}
+.campo input,.campo select,.campo textarea{width:100%;padding:11px 13px;border:1px solid var(--linha);border-radius:var(--r);background:var(--branco);outline:none}
+.campo input:focus,.campo select:focus,.campo textarea:focus{border-color:var(--ouro-escuro);box-shadow:0 0 0 3px rgba(164,129,81,.15)}
+.campo textarea{min-height:120px;resize:vertical;line-height:1.55}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border:none;border-radius:var(--r);
+  background:var(--vinho);color:#fff;cursor:pointer;font-weight:500;font-size:13px;transition:filter .15s}
+.btn:hover{filter:brightness(1.12)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.largo{width:100%;padding:13px}
+.btn.secundario{background:transparent;color:var(--vinho);border:1px solid var(--linha)}
+.btn.ouro{background:linear-gradient(135deg,var(--ouro) 0%,var(--ouro-escuro) 100%)}
+.btn.perigo{background:transparent;color:var(--perigo);border:1px solid #f0d4d2}
+.btn.mini{padding:6px 11px;font-size:12px}
+.aviso{margin-top:14px;padding:10px 12px;border-radius:var(--r);font-size:12.5px;line-height:1.5}
+.aviso.erro{background:#fdeceb;color:var(--perigo)}
+.aviso.bom{background:#e9f5ef;color:var(--ok)}
+
+/* ---------- APP ---------- */
+#app{display:grid;grid-template-columns:232px 1fr;min-height:100%}
+#lateral{background:var(--vinho-fundo);color:var(--creme);padding:22px 14px;display:flex;flex-direction:column;gap:22px}
+#lateral .marca{align-items:flex-start;gap:8px;margin:0 0 4px 8px}
+#lateral .marca h1{color:var(--creme);font-size:21px}
+#lateral .selo{width:40px;height:40px;font-size:17px}
+.menu{display:flex;flex-direction:column;gap:2px;flex:1}
+.menu button{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:none;border-radius:8px;background:transparent;
+  color:rgba(247,231,206,.78);cursor:pointer;text-align:left;font-size:13.5px}
+.menu button:hover{background:rgba(255,255,255,.07);color:var(--creme)}
+.menu button.ativo{background:linear-gradient(135deg,var(--ouro) 0%,var(--ouro-escuro) 100%);color:#fff;font-weight:500}
+.menu .ico{width:18px;text-align:center;font-size:14px;opacity:.9}
+.rodape-lateral{border-top:1px solid rgba(247,231,206,.16);padding-top:14px;font-size:12px;color:rgba(247,231,206,.7)}
+.rodape-lateral strong{display:block;color:var(--creme);font-weight:500;font-size:13px}
+.rodape-lateral .papel{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:99px;background:rgba(207,189,150,.22);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+
+#conteudo{padding:26px 30px 60px;max-width:1240px}
+.cabecalho{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.cabecalho h2{font-size:27px;color:var(--vinho)}
+.cabecalho p{margin:4px 0 0;color:var(--tinta-fraca);font-size:13px}
+.barra{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.barra input,.barra select{padding:9px 12px;border:1px solid var(--linha);border-radius:var(--r);background:var(--branco);outline:none;min-width:150px}
+.barra input:focus,.barra select:focus{border-color:var(--ouro-escuro)}
+.busca{flex:1;min-width:200px !important}
+
+.cartoes{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:26px}
+.indicador{background:var(--branco);border:1px solid var(--linha);border-radius:14px;padding:18px}
+.indicador span{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-fraca)}
+.indicador strong{display:block;margin-top:8px;font-family:var(--serif);font-size:30px;font-weight:400;color:var(--vinho);font-variant-numeric:tabular-nums}
+.indicador small{display:block;margin-top:4px;font-size:11.5px;color:var(--tinta-fraca)}
+
+.painel{background:var(--branco);border:1px solid var(--linha);border-radius:14px;box-shadow:var(--sombra);overflow:hidden}
+.painel-topo{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;border-bottom:1px solid var(--linha)}
+.painel-topo h3{font-size:17px;color:var(--vinho)}
+.rolagem{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:11px 14px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-fraca);
+  background:#faf4ea;border-bottom:1px solid var(--linha);white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid #f1e9db;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#fdfaf4}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.vazio{padding:38px 20px;text-align:center;color:var(--tinta-fraca)}
+.vazio strong{display:block;font-family:var(--serif);font-size:18px;color:var(--vinho);margin-bottom:6px;font-weight:400}
+
+.etiqueta{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;white-space:nowrap}
+.e-verde{background:#e6f4ec;color:var(--ok)}
+.e-amarelo{background:#fdf3dd;color:var(--alerta)}
+.e-vermelho{background:#fdecea;color:var(--perigo)}
+.e-azul{background:#eaf0f9;color:var(--info)}
+.e-cinza{background:#f1ece4;color:var(--tinta-fraca)}
+.e-ouro{background:#f6efe1;color:var(--ouro-escuro)}
+
+/* calendario */
+.calendario{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--linha);border:1px solid var(--linha);border-radius:12px;overflow:hidden}
+.calendario .nome-dia{background:#faf4ea;padding:9px 6px;text-align:center;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta-fraca)}
+.dia{background:var(--branco);min-height:104px;padding:7px;display:flex;flex-direction:column;gap:4px;cursor:pointer}
+.dia:hover{background:#fdfaf4}
+.dia.fora{background:#faf7f1;color:#c3b9ad;cursor:default}
+.dia.hoje .numero{background:var(--vinho);color:#fff}
+.dia .numero{align-self:flex-start;width:23px;height:23px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-variant-numeric:tabular-nums}
+.pino{font-size:10.5px;line-height:1.3;padding:3px 6px;border-radius:5px;background:var(--creme);color:var(--vinho);
+  border-left:3px solid var(--ouro-escuro);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pino.pub{background:#e6f4ec;color:var(--ok);border-left-color:var(--ok)}
+.pino.apr{background:#fdf3dd;color:var(--alerta);border-left-color:var(--alerta)}
+
+/* prompts e conteudo */
+.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.ficha{background:var(--branco);border:1px solid var(--linha);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:9px}
+.ficha-topo{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ficha h4{margin:0;font-family:var(--serif);font-size:16.5px;font-weight:400;color:var(--vinho);line-height:1.25}
+.ficha .corpo{font-size:12.5px;line-height:1.6;color:var(--tinta-fraca);white-space:pre-wrap;max-height:112px;overflow:hidden;position:relative}
+.ficha .corpo.aberto{max-height:none}
+.ficha .meta{display:flex;gap:6px;flex-wrap:wrap}
+.ficha .acoes{display:flex;gap:7px;margin-top:auto;padding-top:4px}
+.estrela{background:none;border:none;cursor:pointer;font-size:16px;line-height:1;color:var(--ouro-escuro);padding:0}
+.estrela.off{color:#d8cfc2}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.chip{padding:7px 14px;border:1px solid var(--linha);border-radius:99px;background:var(--branco);cursor:pointer;font-size:12.5px;color:var(--tinta-fraca)}
+.chip:hover{border-color:var(--ouro-escuro)}
+.chip.ativo{background:var(--vinho);border-color:var(--vinho);color:#fff}
+
+/* marcas */
+.cartao-marca{cursor:pointer;transition:border-color .15s}
+.cartao-marca:hover{border-color:var(--ouro-escuro)}
+.fita{display:flex;height:9px;border-radius:5px;overflow:hidden}
+.fita span{flex:1}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;padding:18px}
+.swatch{display:flex;align-items:center;gap:11px;padding:0;border:1px solid var(--linha);border-radius:11px;background:var(--branco);cursor:pointer;overflow:hidden;text-align:left}
+.swatch:hover{border-color:var(--ouro-escuro)}
+.swatch .amostra{width:52px;align-self:stretch;min-height:58px;flex:none}
+.swatch .rotulo{display:flex;flex-direction:column;gap:1px;padding:9px 11px 9px 0;min-width:0}
+.swatch strong{font-size:13px;font-weight:500}
+.swatch code{font-size:11.5px;color:var(--tinta-fraca);font-variant-numeric:tabular-nums}
+.swatch small{font-size:11px;color:var(--tinta-fraca);line-height:1.35}
+.regras{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--linha)}
+.bloco-marca{background:var(--branco);padding:18px}
+.bloco-marca h5{margin:0 0 10px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-fraca)}
+.bloco-marca h5.bom{color:var(--ok)}
+.bloco-marca h5.ruim{color:var(--perigo)}
+.bloco-marca ul{margin:0;padding-left:17px;display:flex;flex-direction:column;gap:7px}
+.bloco-marca li{font-size:12.5px;line-height:1.5}
+@media (max-width:860px){.regras{grid-template-columns:1fr}}
+
+/* modal */
+.fundo-modal{position:fixed;inset:0;background:rgba(43,32,36,.5);display:grid;place-items:center;padding:20px;z-index:50;overflow-y:auto}
+.modal{background:var(--branco);border-radius:16px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;box-shadow:0 30px 70px rgba(0,0,0,.3)}
+.modal-topo{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--linha);position:sticky;top:0;background:var(--branco);z-index:2}
+.modal-topo h3{font-size:19px;color:var(--vinho)}
+.fechar{background:none;border:none;font-size:24px;line-height:1;cursor:pointer;color:var(--tinta-fraca)}
+.modal-corpo{padding:20px 22px}
+.modal-pe{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--linha);position:sticky;bottom:0;background:var(--branco)}
+.dupla{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+#recado{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(16px);background:var(--tinta);color:#fff;
+  padding:11px 20px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:all .22s;z-index:99}
+#recado.visivel{opacity:1;transform:translateX(-50%) translateY(0)}
+#carregando{padding:60px;text-align:center;color:var(--tinta-fraca)}
+
+@media (max-width:860px){
+  #app{grid-template-columns:1fr}
+  #lateral{flex-direction:row;align-items:center;gap:12px;overflow-x:auto;padding:12px;position:sticky;top:0;z-index:20}
+  #lateral .marca,.rodape-lateral{display:none}
+  .menu{flex-direction:row;gap:6px}
+  .menu button{white-space:nowrap;padding:9px 13px}
+  #conteudo{padding:18px 16px 60px}
+  .dupla{grid-template-columns:1fr}
+  .dia{min-height:74px}
+  .dia .pino{display:none}
+  .dia.tem::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--ouro-escuro)}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="tela-login">
+  <div class="cartao-login">
+    <div class="marca">
+      <div class="selo">AL</div>
+      <h1>Painel Alcance</h1>
+      <span>Marketing Digital</span>
+    </div>
+    <form id="form-login">
+      <label class="campo"><span>Email</span><input id="login-email" type="email" autocomplete="username" required></label>
+      <label class="campo"><span>Senha</span><input id="login-senha" type="password" autocomplete="current-password" required></label>
+      <button class="btn largo" id="btn-entrar" type="submit">Entrar</button>
+    </form>
+    <div id="aviso-login"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="oculto">
+  <nav id="lateral">
+    <div class="marca"><div class="selo">AL</div><h1>Painel Alcance</h1></div>
+    <div class="menu" id="menu"></div>
+    <div class="rodape-lateral">
+      <strong id="eu-nome">—</strong>
+      <span id="eu-email"></span><br>
+      <span class="papel" id="eu-papel"></span>
+      <div style="margin-top:12px"><button class="btn secundario mini" id="btn-sair" style="color:var(--creme);border-color:rgba(247,231,206,.3)">Sair</button></div>
+    </div>
+  </nav>
+  <main id="conteudo"><div id="carregando">Carregando os dados da agência…</div></main>
+</div>
+
+<div id="recado"></div>
+<div id="area-modal"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ============================================================
+   CONFIGURACAO
+   ============================================================ */
+const SUPABASE_URL = "https://ybvyomjrxgwogwmvubau.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8YUtkeSXzUQ7gTRJaEjO-w_LRNdDBb8";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+const S = {
+  perfil:null, admin:false, aba:'visao',
+  clientes:[], posts:[], faturas:[], prompts:[], conteudos:[], contratos:[], equipe:[], marcas:[],
+  mes:new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),
+  filtro:{}, categoria:'Todas'
+};
+
+const ABAS = [
+  {id:'visao',     nome:'Visão geral', ico:'◆', admin:false},
+  {id:'clientes',  nome:'Clientes',    ico:'●', admin:false},
+  {id:'agenda',    nome:'Agenda',      ico:'▦', admin:false},
+  {id:'conteudo',  nome:'Conteúdo',    ico:'✎', admin:false},
+  {id:'marcas',    nome:'Marcas',      ico:'◈', admin:false},
+  {id:'prompts',   nome:'Prompts',     ico:'✦', admin:false},
+  {id:'financeiro',nome:'Financeiro',  ico:'₿', admin:true},
+  {id:'contratos', nome:'Contratos',   ico:'▣', admin:true},
+  {id:'equipe',    nome:'Equipe',      ico:'◇', admin:true}
+];
+
+const CATEGORIAS = ['Copy e legendas','Carrossel e roteiro','Tráfego pago','Vídeo e Reels','Imagem e arte','Estratégia','Comercial','Relatórios','Interno'];
+const FERRAMENTAS = ['ChatGPT','Gemini','Claude','Veo','Sora','Midjourney','Canva','Outra'];
+
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dinheiro = v => (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const dataBr = d => d ? new Date(d+'T12:00:00').toLocaleDateString('pt-BR') : '—';
+const hojeIso = () => new Date().toISOString().slice(0,10);
+
+function recado(texto){
+  const r = $('#recado'); r.textContent = texto; r.classList.add('visivel');
+  clearTimeout(r._t); r._t = setTimeout(()=>r.classList.remove('visivel'), 2600);
+}
+
+async function copiar(texto, aviso){
+  try { await navigator.clipboard.writeText(texto); recado(aviso || 'Copiado'); }
+  catch(e){
+    const a = document.createElement('textarea');
+    a.value = texto; document.body.appendChild(a); a.select();
+    try{ document.execCommand('copy'); recado(aviso || 'Copiado'); }catch(_){ recado('Não consegui copiar'); }
+    a.remove();
+  }
+}
+
+function nomeCliente(id){
+  const c = S.clientes.find(c=>c.id===id);
+  return c ? c.nome : 'Sem cliente';
+}
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+$('#form-login').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('#btn-entrar'); btn.disabled = true; btn.textContent = 'Entrando…';
+  $('#aviso-login').innerHTML = '';
+  const { error } = await sb.auth.signInWithPassword({
+    email: $('#login-email').value.trim(),
+    password: $('#login-senha').value
+  });
+  btn.disabled = false; btn.textContent = 'Entrar';
+  if (error) {
+    $('#aviso-login').innerHTML = '<div class="aviso erro">'+esc(
+      error.message.includes('Invalid') ? 'Email ou senha incorretos.' : error.message)+'</div>';
+  }
+});
+
+$('#btn-sair').addEventListener('click', async () => { await sb.auth.signOut(); location.reload(); });
+
+sb.auth.onAuthStateChange((evento, sessao) => {
+  if (sessao && !S.perfil) iniciar(sessao);
+});
+
+(async () => {
+  const { data } = await sb.auth.getSession();
+  if (data.session) iniciar(data.session);
+})();
+
+async function iniciar(sessao){
+  $('#tela-login').classList.add('oculto');
+  $('#app').classList.remove('oculto');
+
+  let { data: perfil } = await sb.from('profiles').select('*').eq('id', sessao.user.id).maybeSingle();
+  if (!perfil) {
+    await sb.from('profiles').insert({ id: sessao.user.id, email: sessao.user.email, nome: sessao.user.email, papel: 'COLABORADOR' });
+    perfil = { id: sessao.user.id, email: sessao.user.email, nome: sessao.user.email, papel: 'COLABORADOR' };
+  }
+  S.perfil = perfil;
+  S.admin = String(perfil.papel || '').toUpperCase() === 'ADMIN';
+
+  $('#eu-nome').textContent = perfil.nome || perfil.email;
+  $('#eu-email').textContent = perfil.email || '';
+  $('#eu-papel').textContent = S.admin ? 'Administradora' : 'Colaborador';
+
+  montarMenu();
+  await carregarTudo();
+  render();
+}
+
+function montarMenu(){
+  $('#menu').innerHTML = ABAS.filter(a => !a.admin || S.admin)
+    .map(a => `<button data-aba="${a.id}" class="${a.id===S.aba?'ativo':''}"><span class="ico">${a.ico}</span>${a.nome}</button>`).join('');
+  $('#menu').querySelectorAll('button').forEach(b => b.onclick = () => {
+    S.aba = b.dataset.aba; S.filtro = {}; montarMenu(); render();
+    window.scrollTo({top:0});
+  });
+}
+
+async function carregarTudo(){
+  const pedidos = [
+    sb.from('clientes').select('*').order('nome'),
+    sb.from('posts').select('*').order('data_prevista'),
+    sb.from('prompts').select('*').order('criado_em',{ascending:false}),
+    sb.from('conteudos').select('*').order('criado_em',{ascending:false}),
+    sb.from('marcas').select('*').order('nome')
+  ];
+  if (S.admin) {
+    pedidos.push(sb.from('faturas').select('*').order('vencimento'));
+    pedidos.push(sb.from('contratos').select('*').order('criado_em',{ascending:false}));
+    pedidos.push(sb.from('profiles').select('*').order('nome'));
+  }
+  const r = await Promise.all(pedidos);
+  S.clientes  = r[0].data || [];
+  S.posts     = r[1].data || [];
+  S.prompts   = r[2].data || [];
+  S.conteudos = r[3].data || [];
+  S.marcas    = r[4].data || [];
+  if (S.admin) { S.faturas = r[5].data || []; S.contratos = r[6].data || []; S.equipe = r[7].data || []; }
+}
+
+async function recarregar(tabela){
+  const mapa = {
+    clientes:['clientes','nome'], posts:['posts','data_prevista'], prompts:['prompts','criado_em'],
+    conteudos:['conteudos','criado_em'], faturas:['faturas','vencimento'], contratos:['contratos','criado_em'],
+    equipe:['profiles','nome'], marcas:['marcas','nome']
+  };
+  const [nome, ordem] = mapa[tabela];
+  const { data } = await sb.from(nome).select('*').order(ordem, {ascending: ordem==='nome'||ordem==='vencimento'||ordem==='data_prevista'});
+  S[tabela] = data || [];
+  render();
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render(){
+  const telas = { visao, clientes, agenda, conteudo, marcas: telaMarcas, prompts, financeiro, contratos, equipe };
+  $('#conteudo').innerHTML = telas[S.aba]();
+  ligarEventos();
+}
+
+/* ---------- VISAO GERAL ---------- */
+function visao(){
+  const ativos = S.clientes.filter(c => (c.status||'ATIVO') === 'ATIVO');
+  const mesAtual = S.mes;
+  const postsMes = S.posts.filter(p => (p.data_prevista||'').startsWith(mesAtual));
+  const pendentes = postsMes.filter(p => p.status !== 'PUBLICADO');
+  const receita = ativos.reduce((s,c) => s + (Number(c.valor_mensal)||0), 0);
+  const abertas = S.faturas.filter(f => f.status !== 'PAGA');
+  const atrasadas = abertas.filter(f => f.vencimento && f.vencimento < hojeIso());
+  const propostas = S.contratos.filter(c => c.tipo === 'PROPOSTA' && c.status === 'EM_ANALISE');
+
+  const proximos = S.posts
+    .filter(p => p.data_prevista && p.data_prevista >= hojeIso() && p.status !== 'PUBLICADO')
+    .slice(0, 8);
+
+  return `
+  <div class="cabecalho">
+    <div><h2>Visão geral</h2><p>${new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p></div>
+  </div>
+  <div class="cartoes">
+    <div class="indicador"><span>Clientes ativos</span><strong>${ativos.length}</strong><small>${S.clientes.length} no total</small></div>
+    <div class="indicador"><span>Posts do mês</span><strong>${postsMes.length}</strong><small>${pendentes.length} ainda não publicados</small></div>
+    ${S.admin ? `
+    <div class="indicador"><span>Receita recorrente</span><strong>${dinheiro(receita)}</strong><small>soma dos contratos ativos</small></div>
+    <div class="indicador"><span>A receber</span><strong>${dinheiro(abertas.reduce((s,f)=>s+(Number(f.valor)||0),0))}</strong><small>${atrasadas.length} fatura(s) em atraso</small></div>
+    <div class="indicador"><span>Propostas abertas</span><strong>${propostas.length}</strong><small>aguardando resposta</small></div>` : ''}
+  </div>
+
+  <div class="painel">
+    <div class="painel-topo"><h3>Próximas entregas</h3><button class="btn mini" data-ir="agenda">Ver agenda</button></div>
+    ${proximos.length ? `<div class="rolagem"><table>
+      <thead><tr><th>Data</th><th>Cliente</th><th>Tema</th><th>Formato</th><th>Status</th></tr></thead>
+      <tbody>${proximos.map(p => `<tr>
+        <td class="num">${dataBr(p.data_prevista)}</td>
+        <td>${esc(nomeCliente(p.cliente_id))}</td>
+        <td>${esc(p.tema || p.titulo || '—')}</td>
+        <td>${esc(p.formato || '—')}</td>
+        <td>${etiquetaPost(p.status)}</td>
+      </tr>`).join('')}</tbody></table></div>`
+      : `<div class="vazio"><strong>Nenhuma entrega agendada</strong>Abra a agenda e clique em um dia para programar o primeiro post.</div>`}
+  </div>`;
+}
+
+function etiquetaPost(s){
+  const m = {IDEIA:['e-cinza','Ideia'],PRODUCAO:['e-azul','Em produção'],APROVACAO:['e-amarelo','Aprovação'],
+             AGENDADO:['e-ouro','Agendado'],PUBLICADO:['e-verde','Publicado']};
+  const [cl,txt] = m[s] || ['e-cinza', s || '—'];
+  return `<span class="etiqueta ${cl}">${txt}</span>`;
+}
+
+/* ---------- CLIENTES ---------- */
+function clientes(){
+  const busca = (S.filtro.busca||'').toLowerCase();
+  const lista = S.clientes.filter(c => !busca || (c.nome||'').toLowerCase().includes(busca) || (c.nicho||'').toLowerCase().includes(busca));
+  return `
+  <div class="cabecalho">
+    <div><h2>Clientes</h2><p>${S.clientes.length} cadastrados</p></div>
+    <button class="btn" data-novo="cliente">Novo cliente</button>
+  </div>
+  <div class="barra"><input class="busca" data-filtro="busca" placeholder="Buscar por nome ou nicho" value="${esc(S.filtro.busca||'')}"></div>
+  <div class="painel">${lista.length ? `<div class="rolagem"><table>
+    <thead><tr><th>Cliente</th><th>Nicho</th><th>Contato</th>${S.admin?'<th>Mensalidade</th><th>Vence</th>':''}<th>Status</th><th></th></tr></thead>
+    <tbody>${lista.map(c => `<tr>
+      <td><strong style="font-weight:500">${esc(c.nome)}</strong>${c.instagram?`<br><small style="color:var(--tinta-fraca)">${esc(c.instagram)}</small>`:''}</td>
+      <td>${esc(c.nicho||'—')}</td>
+      <td>${esc(c.contato||'—')}${c.telefone?`<br><small style="color:var(--tinta-fraca)">${esc(c.telefone)}</small>`:''}</td>
+      ${S.admin?`<td class="num">${dinheiro(c.valor_mensal)}</td><td class="num">${c.dia_vencimento?'dia '+c.dia_vencimento:'—'}</td>`:''}
+      <td><span class="etiqueta ${c.status==='ATIVO'?'e-verde':c.status==='PAUSADO'?'e-amarelo':'e-cinza'}">${esc(c.status||'ATIVO')}</span></td>
+      <td><button class="btn secundario mini" data-editar="cliente" data-id="${c.id}">Editar</button></td>
+    </tr>`).join('')}</tbody></table></div>`
+    : `<div class="vazio"><strong>Nenhum cliente ainda</strong>Cadastre o primeiro para liberar agenda, conteúdo e faturamento.</div>`}</div>`;
+}
+
+/* ---------- AGENDA ---------- */
+function agenda(){
+  const [ano, mes] = S.mes.split('-').map(Number);
+  const primeiro = new Date(ano, mes-1, 1);
+  const inicio = new Date(primeiro); inicio.setDate(1 - primeiro.getDay());
+  const filtroCliente = S.filtro.cliente || '';
+  const posts = S.posts.filter(p => !filtroCliente || p.cliente_id === filtroCliente);
+  const nomeMes = primeiro.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+
+  let celulas = '';
+  for (let i=0; i<42; i++){
+    const d = new Date(inicio); d.setDate(inicio.getDate()+i);
+    const iso = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const fora = d.getMonth() !== mes-1;
+    const doDia = posts.filter(p => p.data_prevista === iso);
+    celulas += `<div class="dia ${fora?'fora':''} ${iso===hojeIso()?'hoje':''} ${doDia.length?'tem':''}" ${fora?'':`data-dia="${iso}"`}>
+      <div class="numero">${d.getDate()}</div>
+      ${doDia.slice(0,3).map(p => `<div class="pino ${p.status==='PUBLICADO'?'pub':p.status==='APROVACAO'?'apr':''}" data-post="${p.id}" title="${esc(p.tema||p.titulo||'')}">${esc((p.formato||'')[0]||'•')} ${esc(nomeCliente(p.cliente_id).split(' ')[0])}: ${esc(p.tema||p.titulo||'')}</div>`).join('')}
+      ${doDia.length>3?`<div class="pino" style="background:#f1ece4;color:var(--tinta-fraca);border-left-color:#ccc">+${doDia.length-3}</div>`:''}
+    </div>`;
+  }
+
+  return `
+  <div class="cabecalho">
+    <div><h2>Agenda de postagens</h2><p>Clique em um dia para programar uma publicação</p></div>
+    <button class="btn" data-novo="post">Novo post</button>
+  </div>
+  <div class="barra">
+    <button class="btn secundario mini" data-mes="-1">◀</button>
+    <strong style="min-width:170px;text-align:center;font-family:var(--serif);font-size:18px;color:var(--vinho);text-transform:capitalize">${nomeMes}</strong>
+    <button class="btn secundario mini" data-mes="1">▶</button>
+    <select data-filtro="cliente">
+      <option value="">Todos os clientes</option>
+      ${S.clientes.map(c=>`<option value="${c.id}" ${filtroCliente===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}
+    </select>
+  </div>
+  <div class="calendario">
+    ${['dom','seg','ter','qua','qui','sex','sáb'].map(d=>`<div class="nome-dia">${d}</div>`).join('')}
+    ${celulas}
+  </div>`;
+}
+
+/* ---------- CONTEUDO ---------- */
+function conteudo(){
+  const busca = (S.filtro.busca||'').toLowerCase();
+  const fc = S.filtro.cliente || '';
+  const lista = S.conteudos.filter(c =>
+    (!fc || c.cliente_id === fc) &&
+    (!busca || (c.titulo||'').toLowerCase().includes(busca) || (c.texto||'').toLowerCase().includes(busca) || (c.tags||'').toLowerCase().includes(busca)));
+  return `
+  <div class="cabecalho">
+    <div><h2>Banco de conteúdo</h2><p>Copy aprovada e temas já publicados, para não repetir</p></div>
+    <button class="btn" data-novo="conteudo">Nova copy</button>
+  </div>
+  <div class="barra">
+    <input class="busca" data-filtro="busca" placeholder="Buscar por tema, texto ou tag" value="${esc(S.filtro.busca||'')}">
+    <select data-filtro="cliente"><option value="">Todos os clientes</option>
+      ${S.clientes.map(c=>`<option value="${c.id}" ${fc===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select>
+  </div>
+  ${lista.length ? `<div class="grade">${lista.map(c => `
+    <div class="ficha">
+      <div class="ficha-topo"><h4>${esc(c.titulo)}</h4></div>
+      <div class="meta">
+        <span class="etiqueta e-ouro">${esc(nomeCliente(c.cliente_id))}</span>
+        <span class="etiqueta e-cinza">${esc(c.canal||'—')}</span>
+        ${c.publicado_em?`<span class="etiqueta e-verde">${dataBr(c.publicado_em)}</span>`:''}
+      </div>
+      <div class="corpo" data-expandir>${esc(c.texto)}</div>
+      <div class="acoes">
+        <button class="btn mini" data-copiar-conteudo="${c.id}">Copiar</button>
+        <button class="btn secundario mini" data-editar="conteudo" data-id="${c.id}">Editar</button>
+      </div>
+    </div>`).join('')}</div>`
+    : `<div class="painel"><div class="vazio"><strong>Banco vazio</strong>Salve aqui a copy que já foi aprovada e publicada por cliente.</div></div>`}`;
+}
+
+/* ---------- MARCAS ---------- */
+function corDeLinha(linha){
+  const m = String(linha).match(/#([0-9a-fA-F]{3,8})/);
+  if (!m) return null;
+  const hex = '#' + m[1];
+  const resto = linha.replace(m[0], '').trim();
+  const corte = resto.search(/\s{2,}| (?=[A-ZÁÉÍÓÚÂÊÔÃÕÇ])/);
+  const nome = corte > 0 ? resto.slice(0, corte).trim() : resto;
+  const uso = corte > 0 ? resto.slice(corte).trim() : '';
+  return { hex, nome: nome || hex, uso };
+}
+
+function blocoLista(titulo, texto, classe){
+  if (!texto) return '';
+  const itens = String(texto).split('\n').map(l=>l.trim()).filter(Boolean);
+  return `<div class="bloco-marca">
+    <h5 class="${classe||''}">${titulo}</h5>
+    <ul>${itens.map(i=>`<li>${esc(i)}</li>`).join('')}</ul>
+  </div>`;
+}
+
+function briefingDaMarca(m){
+  const partes = [
+    'MANUAL DE MARCA: ' + m.nome + (m.versao ? ' (' + m.versao + ')' : ''),
+    m.essencia && 'ESSÊNCIA\n' + m.essencia,
+    m.voz && 'VOZ\n' + m.voz,
+    m.paleta && 'PALETA\n' + m.paleta,
+    m.tipografia && 'TIPOGRAFIA\n' + m.tipografia,
+    m.formatos && 'FORMATOS E MEDIDAS\n' + m.formatos,
+    m.sempre && 'SEMPRE\n' + m.sempre,
+    m.nunca && 'NUNCA\n' + m.nunca,
+    m.palavras_proibidas && 'PALAVRAS QUE NÃO ENTRAM\n' + m.palavras_proibidas,
+    m.observacoes && 'OBSERVAÇÕES\n' + m.observacoes,
+    'Siga este manual à risca na peça que eu pedir a seguir. Quando algo não estiver no manual, me pergunte em vez de decidir sozinho.'
+  ].filter(Boolean);
+  return partes.join('\n\n');
+}
+
+function telaMarcas(){
+  const busca = (S.filtro.busca||'').toLowerCase();
+  const lista = S.marcas.filter(m => !busca || (m.nome||'').toLowerCase().includes(busca));
+  const aberta = S.filtro.marca ? S.marcas.find(m => m.id === S.filtro.marca) : null;
+
+  if (aberta) {
+    const cores = String(aberta.paleta||'').split('\n').map(corDeLinha).filter(Boolean);
+    return `
+    <div class="cabecalho">
+      <div>
+        <h2>${esc(aberta.nome)}</h2>
+        <p>${esc(aberta.versao || 'Manual de marca')}${aberta.cliente_id ? ' · ' + esc(nomeCliente(aberta.cliente_id)) : ''}</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn secundario mini" data-filtro-limpo="marca">Voltar</button>
+        <button class="btn ouro mini" data-briefing="${aberta.id}">Copiar manual para IA</button>
+        <button class="btn secundario mini" data-editar="marca" data-id="${aberta.id}">Editar</button>
+      </div>
+    </div>
+
+    ${aberta.essencia ? `<div class="painel" style="margin-bottom:16px"><div class="modal-corpo"><p style="margin:0;font-family:var(--serif);font-size:18px;line-height:1.5;color:var(--vinho)">${esc(aberta.essencia)}</p></div></div>` : ''}
+
+    ${cores.length ? `<div class="painel" style="margin-bottom:16px">
+      <div class="painel-topo"><h3>Paleta</h3><small style="color:var(--tinta-fraca)">clique na cor para copiar o código</small></div>
+      <div class="swatches">${cores.map(c => `
+        <button class="swatch" data-cor="${esc(c.hex)}">
+          <span class="amostra" style="background:${esc(c.hex)}"></span>
+          <span class="rotulo"><strong>${esc(c.nome)}</strong><code>${esc(c.hex)}</code>${c.uso?`<small>${esc(c.uso)}</small>`:''}</span>
+        </button>`).join('')}</div>
+    </div>` : ''}
+
+    <div class="grade">
+      ${aberta.voz ? `<div class="ficha"><h4>Voz</h4><div class="corpo aberto">${esc(aberta.voz)}</div></div>` : ''}
+      ${aberta.tipografia ? `<div class="ficha"><h4>Tipografia</h4><div class="corpo aberto">${esc(aberta.tipografia)}</div></div>` : ''}
+      ${aberta.formatos ? `<div class="ficha"><h4>Formatos e medidas</h4><div class="corpo aberto">${esc(aberta.formatos)}</div></div>` : ''}
+      ${aberta.observacoes ? `<div class="ficha"><h4>Observações</h4><div class="corpo aberto">${esc(aberta.observacoes)}</div></div>` : ''}
+    </div>
+
+    <div class="painel" style="margin-top:16px">
+      <div class="painel-topo"><h3>Regras de aplicação</h3></div>
+      <div class="regras">
+        ${blocoLista('Sempre', aberta.sempre, 'bom')}
+        ${blocoLista('Nunca', aberta.nunca, 'ruim')}
+      </div>
+      ${aberta.palavras_proibidas ? `<div style="padding:0 18px 18px">
+        <h5 style="margin:0 0 7px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-fraca)">Palavras que não entram</h5>
+        <p style="margin:0;font-size:13px;line-height:1.6;color:var(--tinta-fraca)">${esc(aberta.palavras_proibidas)}</p>
+      </div>` : ''}
+    </div>`;
+  }
+
+  return `
+  <div class="cabecalho">
+    <div><h2>Manuais de marca</h2><p>Paleta, voz e regras de cada marca que a agência atende</p></div>
+    <button class="btn" data-novo="marca">Nova marca</button>
+  </div>
+  <div class="barra"><input class="busca" data-filtro="busca" placeholder="Buscar marca" value="${esc(S.filtro.busca||'')}"></div>
+  ${lista.length ? `<div class="grade">${lista.map(m => {
+    const cores = String(m.paleta||'').split('\n').map(corDeLinha).filter(Boolean).slice(0,8);
+    return `<div class="ficha cartao-marca" data-abrir-marca="${m.id}">
+      <div class="ficha-topo"><h4>${esc(m.nome)}</h4></div>
+      ${cores.length ? `<div class="fita">${cores.map(c=>`<span style="background:${esc(c.hex)}"></span>`).join('')}</div>` : ''}
+      <div class="meta">
+        ${m.cliente_id ? `<span class="etiqueta e-ouro">${esc(nomeCliente(m.cliente_id))}</span>` : '<span class="etiqueta e-cinza">Marca própria</span>'}
+        ${m.versao ? `<span class="etiqueta e-cinza">${esc(m.versao)}</span>` : ''}
+      </div>
+      <div class="corpo">${esc(m.essencia || 'Sem resumo cadastrado')}</div>
+      <div class="acoes"><button class="btn mini" data-abrir-marca="${m.id}">Abrir manual</button></div>
+    </div>`;
+  }).join('')}</div>`
+    : `<div class="painel"><div class="vazio"><strong>Nenhum manual cadastrado</strong>Cadastre a paleta, a voz e as regras de cada cliente para a equipe parar de perguntar qual é a cor certa.</div></div>`}`;
+}
+
+/* ---------- PROMPTS ---------- */
+function prompts(){
+  const busca = (S.filtro.busca||'').toLowerCase();
+  const ferr = S.filtro.ferramenta || '';
+  const cat = S.categoria;
+  const lista = S.prompts.filter(p =>
+    (cat === 'Todas' || cat === 'Favoritos' ? (cat !== 'Favoritos' || p.favorito) : p.categoria === cat) &&
+    (!ferr || p.ferramenta === ferr) &&
+    (!busca || (p.titulo||'').toLowerCase().includes(busca) || (p.texto||'').toLowerCase().includes(busca) || (p.tags||'').toLowerCase().includes(busca)));
+
+  const usadas = ['Todas','Favoritos', ...CATEGORIAS.filter(c => S.prompts.some(p => p.categoria === c))];
+
+  return `
+  <div class="cabecalho">
+    <div><h2>Biblioteca de prompts</h2><p>${S.prompts.length} prompts salvos</p></div>
+    <button class="btn" data-novo="prompt">Novo prompt</button>
+  </div>
+  <div class="barra">
+    <input class="busca" data-filtro="busca" placeholder="Buscar por título, texto ou tag" value="${esc(S.filtro.busca||'')}">
+    <select data-filtro="ferramenta"><option value="">Todas as ferramentas</option>
+      ${FERRAMENTAS.map(f=>`<option value="${f}" ${ferr===f?'selected':''}>${f}</option>`).join('')}</select>
+  </div>
+  <div class="chips">${usadas.map(c => `<button class="chip ${S.categoria===c?'ativo':''}" data-categoria="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+  ${lista.length ? `<div class="grade">${lista.map(p => `
+    <div class="ficha">
+      <div class="ficha-topo">
+        <h4>${esc(p.titulo)}</h4>
+        <button class="estrela ${p.favorito?'':'off'}" data-favorito="${p.id}" title="Fixar">${p.favorito?'★':'☆'}</button>
+      </div>
+      <div class="meta">
+        <span class="etiqueta e-ouro">${esc(p.ferramenta)}</span>
+        <span class="etiqueta e-cinza">${esc(p.categoria)}</span>
+      </div>
+      <div class="corpo" data-expandir>${esc(p.texto)}</div>
+      <div class="acoes">
+        <button class="btn mini" data-copiar-prompt="${p.id}">Copiar prompt</button>
+        <button class="btn secundario mini" data-editar="prompt" data-id="${p.id}">Editar</button>
+      </div>
+    </div>`).join('')}</div>`
+    : `<div class="painel"><div class="vazio"><strong>Nenhum prompt nessa seleção</strong>Troque o filtro ou cadastre um prompt novo.</div></div>`}`;
+}
+
+/* ---------- FINANCEIRO ---------- */
+function financeiro(){
+  const fc = S.filtro.cliente || '';
+  const fs = S.filtro.status || '';
+  const lista = S.faturas.filter(f => (!fc || f.cliente_id===fc) && (!fs || situacao(f)===fs));
+  const total = lista.reduce((s,f)=>s+(Number(f.valor)||0),0);
+  const recebido = lista.filter(f=>f.status==='PAGA').reduce((s,f)=>s+(Number(f.valor)||0),0);
+
+  return `
+  <div class="cabecalho">
+    <div><h2>Financeiro</h2><p>Controle de cobranças por cliente</p></div>
+    <button class="btn" data-novo="fatura">Nova cobrança</button>
+  </div>
+  <div class="cartoes">
+    <div class="indicador"><span>Total lançado</span><strong>${dinheiro(total)}</strong></div>
+    <div class="indicador"><span>Recebido</span><strong>${dinheiro(recebido)}</strong></div>
+    <div class="indicador"><span>Em aberto</span><strong>${dinheiro(total-recebido)}</strong></div>
+  </div>
+  <div class="barra">
+    <select data-filtro="cliente"><option value="">Todos os clientes</option>
+      ${S.clientes.map(c=>`<option value="${c.id}" ${fc===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select>
+    <select data-filtro="status"><option value="">Todas as situações</option>
+      ${['PAGA','ABERTA','ATRASADA'].map(s=>`<option value="${s}" ${fs===s?'selected':''}>${s}</option>`).join('')}</select>
+  </div>
+  <div class="painel">${lista.length ? `<div class="rolagem"><table>
+    <thead><tr><th>Cliente</th><th>Descrição</th><th>Valor</th><th>Vencimento</th><th>Situação</th><th></th></tr></thead>
+    <tbody>${lista.map(f => `<tr>
+      <td>${esc(nomeCliente(f.cliente_id))}</td>
+      <td>${esc(f.descricao||'—')}</td>
+      <td class="num">${dinheiro(f.valor)}</td>
+      <td class="num">${dataBr(f.vencimento)}</td>
+      <td>${etiquetaFatura(situacao(f))}</td>
+      <td style="white-space:nowrap">
+        ${f.status!=='PAGA'?`<button class="btn mini" data-pagar="${f.id}">Dar baixa</button> `:''}
+        <button class="btn secundario mini" data-editar="fatura" data-id="${f.id}">Editar</button>
+      </td>
+    </tr>`).join('')}</tbody></table></div>`
+    : `<div class="vazio"><strong>Nenhuma cobrança lançada</strong>Lance a mensalidade dos clientes para acompanhar o que entra.</div>`}</div>`;
+}
+
+function situacao(f){
+  if (f.status === 'PAGA') return 'PAGA';
+  if (f.vencimento && f.vencimento < hojeIso()) return 'ATRASADA';
+  return 'ABERTA';
+}
+function etiquetaFatura(s){
+  const m = {PAGA:['e-verde','Paga'],ABERTA:['e-amarelo','Em aberto'],ATRASADA:['e-vermelho','Atrasada']};
+  const [cl,txt] = m[s]; return `<span class="etiqueta ${cl}">${txt}</span>`;
+}
+
+/* ---------- CONTRATOS ---------- */
+function contratos(){
+  const ft = S.filtro.tipo || '';
+  const lista = S.contratos.filter(c => !ft || c.tipo === ft);
+  return `
+  <div class="cabecalho">
+    <div><h2>Contratos e propostas</h2><p>O que está fechado e o que está na mesa</p></div>
+    <button class="btn" data-novo="contrato">Novo registro</button>
+  </div>
+  <div class="barra">
+    <select data-filtro="tipo"><option value="">Contratos e propostas</option>
+      <option value="CONTRATO" ${ft==='CONTRATO'?'selected':''}>Só contratos</option>
+      <option value="PROPOSTA" ${ft==='PROPOSTA'?'selected':''}>Só propostas</option></select>
+  </div>
+  <div class="painel">${lista.length ? `<div class="rolagem"><table>
+    <thead><tr><th>Título</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th>Vigência</th><th>Status</th><th></th></tr></thead>
+    <tbody>${lista.map(c => `<tr>
+      <td><strong style="font-weight:500">${esc(c.titulo)}</strong>${c.servicos?`<br><small style="color:var(--tinta-fraca)">${esc(c.servicos)}</small>`:''}</td>
+      <td>${esc(nomeCliente(c.cliente_id))}</td>
+      <td><span class="etiqueta ${c.tipo==='CONTRATO'?'e-ouro':'e-azul'}">${c.tipo==='CONTRATO'?'Contrato':'Proposta'}</span></td>
+      <td class="num">${dinheiro(c.valor)}<br><small style="color:var(--tinta-fraca)">${esc(c.periodicidade||'')}</small></td>
+      <td class="num">${c.inicio?dataBr(c.inicio):'—'}${c.fim?' a '+dataBr(c.fim):''}</td>
+      <td>${etiquetaContrato(c.status)}</td>
+      <td><button class="btn secundario mini" data-editar="contrato" data-id="${c.id}">Editar</button></td>
+    </tr>`).join('')}</tbody></table></div>`
+    : `<div class="vazio"><strong>Nada registrado ainda</strong>Cadastre as propostas enviadas para acompanhar o que está em aberto.</div>`}</div>`;
+}
+function etiquetaContrato(s){
+  const m = {EM_ANALISE:['e-amarelo','Em análise'],ACEITA:['e-verde','Aceita'],RECUSADA:['e-vermelho','Recusada'],
+             ATIVO:['e-verde','Ativo'],ENCERRADO:['e-cinza','Encerrado']};
+  const [cl,txt] = m[s] || ['e-cinza', s||'—']; return `<span class="etiqueta ${cl}">${txt}</span>`;
+}
+
+/* ---------- EQUIPE ---------- */
+function equipe(){
+  return `
+  <div class="cabecalho">
+    <div><h2>Equipe</h2><p>Quem tem acesso ao painel e até onde enxerga</p></div>
+  </div>
+  <div class="painel">
+    <div class="painel-topo"><h3>Pessoas com acesso</h3></div>
+    <div class="rolagem"><table>
+      <thead><tr><th>Nome</th><th>Email</th><th>Acesso</th><th></th></tr></thead>
+      <tbody>${S.equipe.map(p => `<tr>
+        <td>${esc(p.nome||'—')}</td><td>${esc(p.email||'—')}</td>
+        <td><span class="etiqueta ${String(p.papel).toUpperCase()==='ADMIN'?'e-ouro':'e-cinza'}">${String(p.papel).toUpperCase()==='ADMIN'?'Administradora':'Colaborador'}</span></td>
+        <td>${p.id!==S.perfil.id?`<button class="btn secundario mini" data-papel="${p.id}" data-valor="${String(p.papel).toUpperCase()==='ADMIN'?'COLABORADOR':'ADMIN'}">
+          Tornar ${String(p.papel).toUpperCase()==='ADMIN'?'colaborador':'administradora'}</button>`:'<small style="color:var(--tinta-fraca)">você</small>'}</td>
+      </tr>`).join('')}</tbody></table></div>
+  </div>
+  <div class="painel" style="margin-top:18px">
+    <div class="painel-topo"><h3>Adicionar alguém</h3></div>
+    <div style="padding:18px;line-height:1.7;font-size:13px;color:var(--tinta-fraca)">
+      Por segurança, a criação de senha é feita direto no Supabase, nunca aqui dentro.
+      Entre em <strong>Authentication</strong>, clique em <strong>Add user</strong>, informe o email e uma senha provisória.
+      A pessoa aparece nesta lista no primeiro acesso, já como colaborador, vendo clientes, agenda, conteúdo e prompts, sem enxergar valores.
+      Para liberar o financeiro, use o botão de acesso na tabela acima.
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   EVENTOS
+   ============================================================ */
+function ligarEventos(){
+  const c = $('#conteudo');
+
+  c.querySelectorAll('[data-filtro]').forEach(el => {
+    const campo = el.dataset.filtro;
+    if (el.tagName === 'INPUT') {
+      el.oninput = () => { S.filtro[campo] = el.value; const p = el.selectionStart; render();
+        const novo = $(`[data-filtro="${campo}"]`); if (novo) { novo.focus(); novo.setSelectionRange(p,p); } };
+    } else { el.onchange = () => { S.filtro[campo] = el.value; render(); }; }
+  });
+
+  c.querySelectorAll('[data-categoria]').forEach(b => b.onclick = () => { S.categoria = b.dataset.categoria; render(); });
+
+  c.querySelectorAll('[data-abrir-marca]').forEach(el => el.onclick = e => {
+    e.stopPropagation(); S.filtro = { marca: el.dataset.abrirMarca }; render(); window.scrollTo({top:0});
+  });
+  c.querySelectorAll('[data-filtro-limpo]').forEach(b => b.onclick = () => { S.filtro = {}; render(); });
+  c.querySelectorAll('[data-cor]').forEach(b => b.onclick = () => copiar(b.dataset.cor, b.dataset.cor + ' copiado'));
+  c.querySelectorAll('[data-briefing]').forEach(b => b.onclick = () => {
+    const m = S.marcas.find(x => x.id === b.dataset.briefing);
+    copiar(briefingDaMarca(m), 'Manual copiado, é só colar na IA');
+  });
+  c.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => { S.aba = b.dataset.ir; montarMenu(); render(); });
+  c.querySelectorAll('[data-expandir]').forEach(el => el.onclick = () => el.classList.toggle('aberto'));
+
+  c.querySelectorAll('[data-mes]').forEach(b => b.onclick = () => {
+    const [a,m] = S.mes.split('-').map(Number);
+    const d = new Date(a, m-1+Number(b.dataset.mes), 1);
+    S.mes = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); render();
+  });
+
+  c.querySelectorAll('[data-novo]').forEach(b => b.onclick = () => abrirForm(b.dataset.novo, null));
+  c.querySelectorAll('[data-editar]').forEach(b => b.onclick = () => abrirForm(b.dataset.editar, b.dataset.id));
+
+  c.querySelectorAll('[data-dia]').forEach(d => d.onclick = e => {
+    if (e.target.closest('[data-post]')) return;
+    abrirForm('post', null, { data_prevista: d.dataset.dia });
+  });
+  c.querySelectorAll('[data-post]').forEach(p => p.onclick = e => { e.stopPropagation(); abrirForm('post', p.dataset.post); });
+
+  c.querySelectorAll('[data-copiar-prompt]').forEach(b => b.onclick = () => {
+    const p = S.prompts.find(x => x.id === b.dataset.copiarPrompt); copiar(p.texto, 'Prompt copiado');
+  });
+  c.querySelectorAll('[data-copiar-conteudo]').forEach(b => b.onclick = () => {
+    const x = S.conteudos.find(y => y.id === b.dataset.copiarConteudo); copiar(x.texto, 'Copy copiada');
+  });
+
+  c.querySelectorAll('[data-favorito]').forEach(b => b.onclick = async () => {
+    const p = S.prompts.find(x => x.id === b.dataset.favorito);
+    await sb.from('prompts').update({ favorito: !p.favorito }).eq('id', p.id);
+    recarregar('prompts');
+  });
+
+  c.querySelectorAll('[data-pagar]').forEach(b => b.onclick = async () => {
+    await sb.from('faturas').update({ status:'PAGA', pago_em: hojeIso() }).eq('id', b.dataset.pagar);
+    recado('Baixa registrada'); recarregar('faturas');
+  });
+
+  c.querySelectorAll('[data-papel]').forEach(b => b.onclick = async () => {
+    await sb.from('profiles').update({ papel: b.dataset.valor }).eq('id', b.dataset.papel);
+    recado('Acesso atualizado'); recarregar('equipe');
+  });
+}
+
+/* ============================================================
+   FORMULARIOS
+   ============================================================ */
+const FORMS = {
+  cliente:{ tabela:'clientes', estado:'clientes', titulo:'Cliente', campos:[
+    {n:'nome',r:'Nome',obrigatorio:true},{n:'nicho',r:'Nicho'},{n:'instagram',r:'Instagram'},
+    {n:'contato',r:'Pessoa de contato'},{n:'telefone',r:'Telefone'},{n:'email',r:'Email',tipo:'email'},
+    {n:'servicos',r:'Serviços contratados',tipo:'area'},
+    {n:'valor_mensal',r:'Mensalidade',tipo:'numero',somenteAdmin:true},
+    {n:'dia_vencimento',r:'Dia de vencimento',tipo:'numero',somenteAdmin:true},
+    {n:'status',r:'Status',tipo:'opcoes',opcoes:['ATIVO','PAUSADO','ENCERRADO']},
+    {n:'observacoes',r:'Observações',tipo:'area'}]},
+
+  post:{ tabela:'posts', estado:'posts', titulo:'Post', campos:[
+    {n:'cliente_id',r:'Cliente',tipo:'cliente',obrigatorio:true},
+    {n:'tema',r:'Tema',obrigatorio:true},
+    {n:'formato',r:'Formato',tipo:'opcoes',opcoes:['ESTATICO','CARROSSEL','STORY','REELS']},
+    {n:'data_prevista',r:'Data',tipo:'data'},
+    {n:'status',r:'Status',tipo:'opcoes',opcoes:['IDEIA','PRODUCAO','APROVACAO','AGENDADO','PUBLICADO']},
+    {n:'responsavel',r:'Responsável'},
+    {n:'legenda',r:'Legenda',tipo:'area'}]},
+
+  conteudo:{ tabela:'conteudos', estado:'conteudos', titulo:'Copy', campos:[
+    {n:'cliente_id',r:'Cliente',tipo:'cliente'},
+    {n:'titulo',r:'Título ou tema',obrigatorio:true},
+    {n:'canal',r:'Canal',tipo:'opcoes',opcoes:['INSTAGRAM','LINKEDIN','FACEBOOK','WHATSAPP','SITE','GOOGLE']},
+    {n:'tipo',r:'Tipo',tipo:'opcoes',opcoes:['LEGENDA','CARROSSEL','ROTEIRO','ANUNCIO','EMAIL','OUTRO']},
+    {n:'publicado_em',r:'Publicado em',tipo:'data'},
+    {n:'tags',r:'Tags'},
+    {n:'texto',r:'Texto',tipo:'area',obrigatorio:true}]},
+
+  marca:{ tabela:'marcas', estado:'marcas', titulo:'Manual de marca', campos:[
+    {n:'nome',r:'Nome da marca',obrigatorio:true},
+    {n:'cliente_id',r:'Cliente (deixe vazio se for marca própria)',tipo:'cliente'},
+    {n:'versao',r:'Versão'},
+    {n:'essencia',r:'Essência da marca em um parágrafo',tipo:'area'},
+    {n:'voz',r:'Voz e tom',tipo:'area'},
+    {n:'paleta',r:'Paleta (uma cor por linha: nome #HEX uso)',tipo:'area'},
+    {n:'tipografia',r:'Tipografia',tipo:'area'},
+    {n:'formatos',r:'Formatos, medidas e elementos',tipo:'area'},
+    {n:'sempre',r:'Sempre (um item por linha)',tipo:'area'},
+    {n:'nunca',r:'Nunca (um item por linha)',tipo:'area'},
+    {n:'palavras_proibidas',r:'Palavras que não entram',tipo:'area'},
+    {n:'observacoes',r:'Observações e regras legais',tipo:'area'}]},
+
+  prompt:{ tabela:'prompts', estado:'prompts', titulo:'Prompt', campos:[
+    {n:'titulo',r:'Título',obrigatorio:true},
+    {n:'categoria',r:'Categoria',tipo:'opcoes',opcoes:CATEGORIAS},
+    {n:'ferramenta',r:'Ferramenta',tipo:'opcoes',opcoes:FERRAMENTAS},
+    {n:'tags',r:'Tags'},
+    {n:'texto',r:'Prompt',tipo:'area',obrigatorio:true}]},
+
+  fatura:{ tabela:'faturas', estado:'faturas', titulo:'Cobrança', campos:[
+    {n:'cliente_id',r:'Cliente',tipo:'cliente',obrigatorio:true},
+    {n:'descricao',r:'Descrição',obrigatorio:true},
+    {n:'valor',r:'Valor',tipo:'numero',obrigatorio:true},
+    {n:'vencimento',r:'Vencimento',tipo:'data'},
+    {n:'status',r:'Situação',tipo:'opcoes',opcoes:['ABERTA','PAGA']},
+    {n:'forma_pagamento',r:'Forma de pagamento',tipo:'opcoes',opcoes:['PIX','BOLETO','CARTAO','TRANSFERENCIA','DINHEIRO']},
+    {n:'observacoes',r:'Observações',tipo:'area'}]},
+
+  contrato:{ tabela:'contratos', estado:'contratos', titulo:'Contrato ou proposta', campos:[
+    {n:'titulo',r:'Título',obrigatorio:true},
+    {n:'cliente_id',r:'Cliente',tipo:'cliente'},
+    {n:'tipo',r:'Tipo',tipo:'opcoes',opcoes:['PROPOSTA','CONTRATO']},
+    {n:'valor',r:'Valor',tipo:'numero'},
+    {n:'periodicidade',r:'Periodicidade',tipo:'opcoes',opcoes:['MENSAL','TRIMESTRAL','ANUAL','PONTUAL']},
+    {n:'inicio',r:'Início',tipo:'data'},
+    {n:'fim',r:'Fim',tipo:'data'},
+    {n:'status',r:'Status',tipo:'opcoes',opcoes:['EM_ANALISE','ACEITA','RECUSADA','ATIVO','ENCERRADO']},
+    {n:'servicos',r:'Serviços',tipo:'area'},
+    {n:'observacoes',r:'Observações',tipo:'area'}]}
+};
+
+function abrirForm(qual, id, pre){
+  const def = FORMS[qual];
+  const registro = id ? (S[def.estado].find(x => x.id === id) || {}) : (pre || {});
+  const campos = def.campos.filter(c => !c.somenteAdmin || S.admin);
+
+  const html = campos.map(c => {
+    const v = registro[c.n] ?? '';
+    let entrada;
+    if (c.tipo === 'area') entrada = `<textarea name="${c.n}" ${c.obrigatorio?'required':''}>${esc(v)}</textarea>`;
+    else if (c.tipo === 'opcoes') entrada = `<select name="${c.n}">${c.opcoes.map(o=>`<option value="${o}" ${v===o?'selected':''}>${o.replace(/_/g,' ')}</option>`).join('')}</select>`;
+    else if (c.tipo === 'cliente') entrada = `<select name="${c.n}" ${c.obrigatorio?'required':''}><option value="">Selecione</option>${S.clientes.map(cl=>`<option value="${cl.id}" ${v===cl.id?'selected':''}>${esc(cl.nome)}</option>`).join('')}</select>`;
+    else entrada = `<input name="${c.n}" type="${c.tipo==='numero'?'number':c.tipo==='data'?'date':c.tipo==='email'?'email':'text'}" ${c.tipo==='numero'?'step="0.01"':''} value="${esc(v)}" ${c.obrigatorio?'required':''}>`;
+    return `<label class="campo"><span>${c.r}</span>${entrada}</label>`;
+  }).join('');
+
+  $('#area-modal').innerHTML = `
+  <div class="fundo-modal" id="fundo">
+    <div class="modal">
+      <div class="modal-topo"><h3>${id?'Editar':'Novo'} ${def.titulo.toLowerCase()}</h3><button class="fechar" id="x">×</button></div>
+      <form id="form-registro">
+        <div class="modal-corpo">${html}</div>
+        <div class="modal-pe">
+          ${id?`<button type="button" class="btn perigo" id="excluir">Excluir</button>`:''}
+          <button type="button" class="btn secundario" id="cancelar">Cancelar</button>
+          <button type="submit" class="btn">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+
+  const fechar = () => $('#area-modal').innerHTML = '';
+  $('#x').onclick = fechar; $('#cancelar').onclick = fechar;
+  $('#fundo').onclick = e => { if (e.target.id === 'fundo') fechar(); };
+
+  if (id) $('#excluir').onclick = async () => {
+    const b = $('#excluir');
+    if (b.dataset.confirmado !== 'sim') { b.dataset.confirmado = 'sim'; b.textContent = 'Confirmar exclusão'; return; }
+    await sb.from(def.tabela).delete().eq('id', id);
+    fechar(); recado('Registro excluído'); recarregar(def.estado);
+  };
+
+  $('#form-registro').onsubmit = async e => {
+    e.preventDefault();
+    const dados = {};
+    new FormData(e.target).forEach((valor, chave) => {
+      const campo = campos.find(c => c.n === chave);
+      if (valor === '') dados[chave] = null;
+      else if (campo && campo.tipo === 'numero') dados[chave] = Number(valor);
+      else dados[chave] = valor;
+    });
+    if (qual === 'prompt' || qual === 'marca') dados.atualizado_em = new Date().toISOString();
+    if (qual === 'fatura' && dados.status === 'PAGA' && !registro.pago_em) dados.pago_em = hojeIso();
+
+    const resposta = id
+      ? await sb.from(def.tabela).update(dados).eq('id', id)
+      : await sb.from(def.tabela).insert(dados);
+
+    if (resposta.error) { recado('Erro: ' + resposta.error.message); return; }
+    fechar(); recado(id ? 'Alterações salvas' : def.titulo + ' cadastrado');
+    recarregar(def.estado);
+  };
+}
+</script>
+</body>
+</html>
