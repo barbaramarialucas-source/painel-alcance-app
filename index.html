@@ -133,6 +133,10 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .chip:hover{border-color:var(--ouro-escuro)}
 .chip.ativo{background:var(--vinho);border-color:var(--vinho);color:#fff}
 
+.anexo{width:100%;border-radius:9px;border:1px solid var(--linha);cursor:zoom-in;display:block;background:#faf4ea}
+.lupa{position:fixed;inset:0;background:rgba(43,32,36,.88);display:grid;place-items:center;padding:18px;z-index:80;cursor:zoom-out;overflow:auto}
+.lupa img{max-width:100%;border-radius:10px;box-shadow:0 30px 70px rgba(0,0,0,.5)}
+
 /* marcas */
 .cartao-marca{cursor:pointer;transition:border-color .15s}
 .cartao-marca:hover{border-color:var(--ouro-escuro)}
@@ -680,6 +684,7 @@ function prompts(){
         <span class="etiqueta e-ouro">${esc(p.ferramenta)}</span>
         <span class="etiqueta e-cinza">${esc(p.categoria)}</span>
       </div>
+      ${p.imagem ? `<img class="anexo" src="${esc(p.imagem)}" alt="Referência visual de ${esc(p.titulo)}" loading="lazy" data-ampliar="${esc(p.imagem)}">` : ''}
       <div class="corpo" data-expandir>${esc(p.texto)}</div>
       <div class="acoes">
         <button class="btn mini" data-copiar-prompt="${p.id}">Copiar prompt</button>
@@ -821,6 +826,15 @@ function ligarEventos(){
   });
   c.querySelectorAll('[data-filtro-limpo]').forEach(b => b.onclick = () => { S.filtro = {}; render(); });
   c.querySelectorAll('[data-cor]').forEach(b => b.onclick = () => copiar(b.dataset.cor, b.dataset.cor + ' copiado'));
+
+  c.querySelectorAll('[data-ampliar]').forEach(img => img.onclick = e => {
+    e.stopPropagation();
+    const lupa = document.createElement('div');
+    lupa.className = 'lupa';
+    lupa.innerHTML = `<img src="${img.dataset.ampliar}" alt="">`;
+    lupa.onclick = () => lupa.remove();
+    document.body.appendChild(lupa);
+  });
   c.querySelectorAll('[data-briefing]').forEach(b => b.onclick = () => {
     const m = S.marcas.find(x => x.id === b.dataset.briefing);
     copiar(briefingDaMarca(m), 'Manual copiado, é só colar na IA');
@@ -917,6 +931,7 @@ const FORMS = {
     {n:'categoria',r:'Categoria',tipo:'opcoes',opcoes:CATEGORIAS},
     {n:'ferramenta',r:'Ferramenta',tipo:'opcoes',opcoes:FERRAMENTAS},
     {n:'tags',r:'Tags'},
+    {n:'imagem',r:'Link da imagem de referência'},
     {n:'texto',r:'Prompt',tipo:'area',obrigatorio:true}]},
 
   fatura:{ tabela:'faturas', estado:'faturas', titulo:'Cobrança', campos:[
