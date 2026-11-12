@@ -138,6 +138,17 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .chip:hover{border-color:var(--ouro-escuro)}
 .chip.ativo{background:var(--vinho);border-color:var(--vinho);color:#fff}
 
+/* acessos */
+.segredo{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;letter-spacing:.06em;margin-right:7px}
+.segredo.revelado{color:var(--vinho);font-weight:600;background:#f6efe1;padding:2px 7px;border-radius:5px}
+.valor-acesso{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;margin-right:7px;word-break:break-all}
+.link-acesso{font-size:11.5px;color:var(--ouro-escuro)}
+.aviso-seguranca{margin-top:18px;border-color:#e7d9c2;background:#fdfaf4}
+.campo-moeda{display:flex;align-items:center;border:1px solid var(--linha);border-radius:var(--r);background:var(--branco);overflow:hidden}
+.campo-moeda:focus-within{border-color:var(--ouro-escuro);box-shadow:0 0 0 3px rgba(164,129,81,.15)}
+.campo-moeda span{padding:0 4px 0 13px;font-size:13px;color:var(--tinta-fraca)}
+.campo-moeda input{border:none !important;box-shadow:none !important;flex:1;min-width:0;font-variant-numeric:tabular-nums}
+
 /* permissoes */
 .tabela-permissoes th.col-marca,.tabela-permissoes td.col-marca{text-align:center;width:1%;white-space:nowrap}
 .tabela-permissoes th.col-marca{font-size:9.5px;letter-spacing:.06em;padding:11px 9px}
@@ -276,7 +287,7 @@ document.querySelectorAll('#logo-login, #logo-lateral').forEach(i => i.src = LOG
    ============================================================ */
 const S = {
   perfil:null, admin:false, aba:'visao',
-  clientes:[], posts:[], faturas:[], prompts:[], conteudos:[], contratos:[], equipe:[], marcas:[],
+  clientes:[], posts:[], faturas:[], prompts:[], conteudos:[], contratos:[], equipe:[], marcas:[], acessos:[],
   mes:new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),
   filtro:{}, categoria:'Todas', permissoes:{}
 };
@@ -284,6 +295,7 @@ const S = {
 const ABAS = [
   {id:'visao',     nome:'Visão geral', ico:'◆', chave:null},
   {id:'clientes',  nome:'Clientes',    ico:'●', chave:'clientes'},
+  {id:'acessos',   nome:'Acessos',     ico:'⚿', chave:'acessos'},
   {id:'agenda',    nome:'Agenda',      ico:'▦', chave:'agenda'},
   {id:'conteudo',  nome:'Conteúdo',    ico:'✎', chave:'conteudo'},
   {id:'marcas',    nome:'Marcas',      ico:'◈', chave:'marcas'},
@@ -293,7 +305,7 @@ const ABAS = [
   {id:'equipe',    nome:'Equipe',      ico:'◇', chave:'equipe'}
 ];
 
-const PADRAO_PERMISSOES = {clientes:true,agenda:true,conteudo:true,marcas:true,prompts:true,financeiro:false,contratos:false,equipe:false,editar:true};
+const PADRAO_PERMISSOES = {clientes:true,acessos:false,agenda:true,conteudo:true,marcas:true,prompts:true,financeiro:false,contratos:false,equipe:false,editar:true};
 
 function pode(chave){
   if (!chave) return true;
@@ -313,6 +325,31 @@ const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const dinheiro = v => (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const dataBr = d => d ? new Date(d+'T12:00:00').toLocaleDateString('pt-BR') : '—';
 const hojeIso = () => new Date().toISOString().slice(0,10);
+
+// aceita 1500, 1.500, 1500,50, 1.500,50, R$ 2.350,90 e 1,500.50
+function lerMoeda(t){
+  let s = String(t).replace(/[^\d.,-]/g,'').trim();
+  if (!s) return null;
+  const negativo = s.startsWith('-');
+  s = s.replace(/-/g,'');
+  const temVirgula = s.includes(','), temPonto = s.includes('.');
+
+  if (temVirgula && temPonto) {
+    // o ultimo separador manda: o outro e milhar
+    s = s.lastIndexOf(',') > s.lastIndexOf('.')
+      ? s.replace(/\./g,'').replace(',','.')
+      : s.replace(/,/g,'');
+  } else if (temVirgula) {
+    s = /^\d{1,3}(,\d{3})+$/.test(s) ? s.replace(/,/g,'') : s.replace(',','.');
+  } else if (temPonto) {
+    // 1.500 e 12.000 sao milhar; 1.5 e 1.50 sao decimal
+    if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g,'');
+  }
+
+  const n = Number(s);
+  if (isNaN(n)) return null;
+  return negativo ? -n : n;
+}
 
 function recado(texto){
   const r = $('#recado'); r.textContent = texto; r.classList.add('visivel');
@@ -415,7 +452,8 @@ async function carregarTudo(){
     pode('marcas')     ? sb.from('marcas').select('*').order('nome') : vazio,
     pode('financeiro') ? sb.from('faturas').select('*').order('vencimento') : vazio,
     pode('contratos')  ? sb.from('contratos').select('*').order('criado_em',{ascending:false}) : vazio,
-    pode('equipe')     ? sb.from('profiles').select('*').order('nome') : vazio
+    pode('equipe')     ? sb.from('profiles').select('*').order('nome') : vazio,
+    pode('acessos')    ? sb.from('acessos').select('*').order('plataforma') : vazio
   ]);
   S.clientes  = r[0].data || [];
   S.posts     = r[1].data || [];
@@ -425,13 +463,14 @@ async function carregarTudo(){
   S.faturas   = r[5].data || [];
   S.contratos = r[6].data || [];
   S.equipe    = r[7].data || [];
+  S.acessos   = r[8].data || [];
 }
 
 async function recarregar(tabela){
   const mapa = {
     clientes:['clientes','nome'], posts:['posts','data_prevista'], prompts:['prompts','criado_em'],
     conteudos:['conteudos','criado_em'], faturas:['faturas','vencimento'], contratos:['contratos','criado_em'],
-    equipe:['profiles','nome'], marcas:['marcas','nome']
+    equipe:['profiles','nome'], marcas:['marcas','nome'], acessos:['acessos','plataforma']
   };
   const [nome, ordem] = mapa[tabela];
   const { data } = await sb.from(nome).select('*').order(ordem, {ascending: ordem==='nome'||ordem==='vencimento'||ordem==='data_prevista'});
@@ -443,7 +482,7 @@ async function recarregar(tabela){
    RENDER
    ============================================================ */
 function render(){
-  const telas = { visao, clientes, agenda, conteudo, marcas: telaMarcas, prompts, financeiro, contratos, equipe };
+  const telas = { visao, clientes, acessos, agenda, conteudo, marcas: telaMarcas, prompts, financeiro, contratos, equipe };
   if (!pode(ABAS.find(a => a.id === S.aba)?.chave)) S.aba = 'visao';
   $('#conteudo').innerHTML = telas[S.aba]();
   if (!podeEditar()) {
@@ -527,6 +566,68 @@ function clientes(){
       <td><button class="btn secundario mini" data-editar="cliente" data-id="${c.id}">Editar</button></td>
     </tr>`).join('')}</tbody></table></div>`
     : `<div class="vazio"><strong>Nenhum cliente ainda</strong>Cadastre o primeiro para liberar agenda, conteúdo e faturamento.</div>`}</div>`;
+}
+
+/* ---------- ACESSOS ---------- */
+const PLATAFORMAS = ['Instagram','Facebook','Meta Business','Google Ads','Google Meu Negócio','Google Analytics','TikTok','LinkedIn','YouTube','WhatsApp Business','Email','Site e hospedagem','Canva','Outro'];
+
+function acessos(){
+  const busca = (S.filtro.busca||'').toLowerCase();
+  const fc = S.filtro.cliente || '';
+  const lista = S.acessos.filter(a =>
+    (!fc || a.cliente_id === fc) &&
+    (!busca || (a.plataforma||'').toLowerCase().includes(busca)
+            || (a.identificacao||'').toLowerCase().includes(busca)
+            || nomeCliente(a.cliente_id).toLowerCase().includes(busca)));
+
+  const porCliente = {};
+  lista.forEach(a => { const k = a.cliente_id || 'sem'; (porCliente[k] = porCliente[k] || []).push(a); });
+  const chaves = Object.keys(porCliente).sort((x,y) => nomeCliente(x).localeCompare(nomeCliente(y)));
+
+  return `
+  <div class="cabecalho">
+    <div><h2>Acessos dos clientes</h2><p>${S.acessos.length} acesso(s) guardado(s)</p></div>
+    <button class="btn" data-novo="acesso">Novo acesso</button>
+  </div>
+  <div class="barra">
+    <input class="busca" data-filtro="busca" placeholder="Buscar por cliente, plataforma ou usuário" value="${esc(S.filtro.busca||'')}">
+    <select data-filtro="cliente"><option value="">Todos os clientes</option>
+      ${S.clientes.map(c=>`<option value="${c.id}" ${fc===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select>
+  </div>
+
+  ${chaves.length ? chaves.map(k => `
+    <div class="painel" style="margin-bottom:16px">
+      <div class="painel-topo"><h3>${esc(nomeCliente(k))}</h3><small style="color:var(--tinta-fraca)">${porCliente[k].length} acesso(s)</small></div>
+      <div class="rolagem"><table>
+        <thead><tr><th>Plataforma</th><th>Usuário ou email</th><th>Senha</th><th>Observações</th><th></th></tr></thead>
+        <tbody>${porCliente[k].map(a => `<tr>
+          <td>
+            <strong style="font-weight:500">${esc(a.plataforma||'—')}</strong>
+            ${a.url ? `<br><a href="${esc(a.url)}" target="_blank" rel="noopener" class="link-acesso">abrir</a>` : ''}
+          </td>
+          <td>
+            <span class="valor-acesso">${esc(a.identificacao||'—')}</span>
+            ${a.identificacao ? `<button class="btn secundario mini" data-copiar-texto="${esc(a.identificacao)}" data-aviso="Usuário copiado">copiar</button>` : ''}
+          </td>
+          <td>
+            <span class="segredo" data-segredo="${a.id}" data-valor="${esc(a.senha||'')}">${a.senha ? '••••••••••' : '—'}</span>
+            ${a.senha ? `<button class="btn secundario mini" data-ver="${a.id}">mostrar</button>
+                         <button class="btn secundario mini" data-copiar-texto="${esc(a.senha)}" data-aviso="Senha copiada">copiar</button>` : ''}
+          </td>
+          <td><small style="color:var(--tinta-fraca)">${esc(a.observacoes||'')}</small></td>
+          <td><button class="btn secundario mini" data-editar="acesso" data-id="${a.id}">Editar</button></td>
+        </tr>`).join('')}</tbody></table></div>
+    </div>`).join('')
+    : `<div class="painel"><div class="vazio"><strong>Nenhum acesso guardado</strong>Cadastre os logins de cada cliente para parar de procurar em conversa de WhatsApp.</div></div>`}
+
+  <div class="painel aviso-seguranca">
+    <div style="padding:16px 18px;font-size:12.5px;line-height:1.65;color:var(--tinta-fraca)">
+      As senhas ficam guardadas no banco do painel, protegidas por login e pela permissão de Acessos, que vem desligada para colaborador.
+      Elas não são criptografadas uma a uma, então quem tem o painel do Supabase consegue lê-las.
+      Para senha de banco, financeiro ou qualquer coisa fora de rede social, use um gerenciador de senhas dedicado.
+      Sempre que possível peça acesso delegado, como parceiro no Meta Business e usuário no Google Ads, em vez da senha do dono.
+    </div>
+  </div>`;
 }
 
 /* ---------- AGENDA ---------- */
@@ -932,6 +1033,22 @@ function ligarEventos(){
   c.querySelectorAll('[data-filtro-limpo]').forEach(b => b.onclick = () => { S.filtro = {}; render(); });
   c.querySelectorAll('[data-cor]').forEach(b => b.onclick = () => copiar(b.dataset.cor, b.dataset.cor + ' copiado'));
 
+  c.querySelectorAll('[data-copiar-texto]').forEach(b => b.onclick = () => copiar(b.dataset.copiarTexto, b.dataset.aviso || 'Copiado'));
+  c.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => {
+    const alvo = c.querySelector(`[data-segredo="${b.dataset.ver}"]`);
+    const aberto = alvo.dataset.aberto === 'sim';
+    alvo.textContent = aberto ? '••••••••••' : alvo.dataset.valor;
+    alvo.dataset.aberto = aberto ? 'nao' : 'sim';
+    alvo.classList.toggle('revelado', !aberto);
+    b.textContent = aberto ? 'mostrar' : 'ocultar';
+    if (!aberto) setTimeout(() => {
+      if (alvo.dataset.aberto === 'sim') {
+        alvo.textContent = '••••••••••'; alvo.dataset.aberto = 'nao';
+        alvo.classList.remove('revelado'); b.textContent = 'mostrar';
+      }
+    }, 20000);
+  });
+
   c.querySelectorAll('[data-ampliar]').forEach(img => img.onclick = e => {
     e.stopPropagation();
     const lupa = document.createElement('div');
@@ -1008,7 +1125,7 @@ const FORMS = {
     {n:'nome',r:'Nome',obrigatorio:true},{n:'nicho',r:'Nicho'},{n:'instagram',r:'Instagram'},
     {n:'contato',r:'Pessoa de contato'},{n:'telefone',r:'Telefone'},{n:'email',r:'Email',tipo:'email'},
     {n:'servicos',r:'Serviços contratados',tipo:'area'},
-    {n:'valor_mensal',r:'Mensalidade',tipo:'numero',somenteAdmin:true},
+    {n:'valor_mensal',r:'Mensalidade',tipo:'moeda',somenteAdmin:true},
     {n:'dia_vencimento',r:'Dia de vencimento',tipo:'numero',somenteAdmin:true},
     {n:'status',r:'Status',tipo:'opcoes',opcoes:['ATIVO','PAUSADO','ENCERRADO']},
     {n:'observacoes',r:'Observações',tipo:'area'}]},
@@ -1031,6 +1148,14 @@ const FORMS = {
     {n:'publicado_em',r:'Publicado em',tipo:'data'},
     {n:'tags',r:'Tags'},
     {n:'texto',r:'Texto',tipo:'area',obrigatorio:true}]},
+
+  acesso:{ tabela:'acessos', estado:'acessos', titulo:'Acesso', campos:[
+    {n:'cliente_id',r:'Cliente',tipo:'cliente',obrigatorio:true},
+    {n:'plataforma',r:'Plataforma',tipo:'opcoes',opcoes:PLATAFORMAS},
+    {n:'identificacao',r:'Usuário, email ou telefone'},
+    {n:'senha',r:'Senha'},
+    {n:'url',r:'Link de acesso'},
+    {n:'observacoes',r:'Observações, verificação em duas etapas, quem é o dono da conta',tipo:'area'}]},
 
   marca:{ tabela:'marcas', estado:'marcas', titulo:'Manual de marca', campos:[
     {n:'nome',r:'Nome da marca',obrigatorio:true},
@@ -1057,7 +1182,7 @@ const FORMS = {
   fatura:{ tabela:'faturas', estado:'faturas', titulo:'Cobrança', campos:[
     {n:'cliente_id',r:'Cliente',tipo:'cliente',obrigatorio:true},
     {n:'descricao',r:'Descrição',obrigatorio:true},
-    {n:'valor',r:'Valor',tipo:'numero',obrigatorio:true},
+    {n:'valor',r:'Valor',tipo:'moeda',obrigatorio:true},
     {n:'vencimento',r:'Vencimento',tipo:'data'},
     {n:'status',r:'Situação',tipo:'opcoes',opcoes:['ABERTA','PAGA']},
     {n:'forma_pagamento',r:'Forma de pagamento',tipo:'opcoes',opcoes:['PIX','BOLETO','CARTAO','TRANSFERENCIA','DINHEIRO']},
@@ -1067,7 +1192,7 @@ const FORMS = {
     {n:'titulo',r:'Título',obrigatorio:true},
     {n:'cliente_id',r:'Cliente',tipo:'cliente'},
     {n:'tipo',r:'Tipo',tipo:'opcoes',opcoes:['PROPOSTA','CONTRATO']},
-    {n:'valor',r:'Valor',tipo:'numero'},
+    {n:'valor',r:'Valor',tipo:'moeda'},
     {n:'periodicidade',r:'Periodicidade',tipo:'opcoes',opcoes:['MENSAL','TRIMESTRAL','ANUAL','PONTUAL']},
     {n:'inicio',r:'Início',tipo:'data'},
     {n:'fim',r:'Fim',tipo:'data'},
@@ -1097,6 +1222,7 @@ function abrirForm(qual, id, pre){
         </label>
         <div id="progresso-envio" class="progresso" hidden></div>
       </div>`;
+    else if (c.tipo === 'moeda') entrada = `<div class="campo-moeda"><span>R$</span><input name="${c.n}" type="text" inputmode="decimal" class="moeda" placeholder="0,00" value="${v === '' || v === null ? '' : Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}" ${c.obrigatorio?'required':''}></div>`;
     else entrada = `<input name="${c.n}" type="${c.tipo==='numero'?'number':c.tipo==='data'?'date':c.tipo==='email'?'email':'text'}" ${c.tipo==='numero'?'step="0.01"':''} value="${esc(v)}" ${c.obrigatorio?'required':''}>`;
     return `<label class="campo"><span>${c.r}</span>${entrada}</label>`;
   }).join('');
@@ -1211,6 +1337,7 @@ function abrirForm(qual, id, pre){
     new FormData(e.target).forEach((valor, chave) => {
       const campo = campos.find(c => c.n === chave);
       if (valor === '') dados[chave] = null;
+      else if (campo && campo.tipo === 'moeda') dados[chave] = lerMoeda(valor);
       else if (campo && campo.tipo === 'numero') dados[chave] = Number(valor);
       else dados[chave] = valor;
     });
