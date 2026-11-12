@@ -26,11 +26,16 @@ a{color:var(--vinho)}
 
 /* ---------- LOGIN ---------- */
 #tela-login{min-height:100%;display:grid;place-items:center;padding:24px;
-  background:radial-gradient(1200px 600px at 50% -10%,#9c2238 0%,var(--vinho-fundo) 60%,#430d17 100%)}
-.cartao-login{width:100%;max-width:380px;background:var(--branco);border-radius:16px;padding:36px 30px;box-shadow:0 30px 70px rgba(0,0,0,.35)}
-.marca{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:26px}
-.placa{width:100%;background:#120609;border-radius:12px;padding:22px 24px;display:grid;place-items:center}
-.placa img{width:100%;max-width:230px;display:block}
+  background:radial-gradient(900px 520px at 50% 18%,#1c0b11 0%,#000 70%)}
+.cartao-login{width:100%;max-width:380px;background:#000;border:1px solid rgba(207,189,150,.22);border-radius:16px;
+  padding:36px 30px;box-shadow:0 30px 70px rgba(0,0,0,.6)}
+.marca{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:30px}
+.placa{width:100%;display:grid;place-items:center}
+.placa img{width:100%;max-width:238px;display:block}
+.cartao-login .campo span{color:rgba(247,231,206,.65)}
+.cartao-login .campo input{background:#0a0507;border-color:rgba(207,189,150,.26);color:var(--creme)}
+.cartao-login .campo input:focus{border-color:var(--ouro);box-shadow:0 0 0 3px rgba(207,189,150,.18)}
+.cartao-login .btn{background:linear-gradient(135deg,var(--ouro) 0%,var(--ouro-escuro) 100%);color:#140a0d;font-weight:600}
 .marca h1{font-size:25px;color:var(--vinho)}
 .marca span{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--ouro-escuro)}
 .campo{display:block;margin-bottom:14px}
@@ -53,9 +58,9 @@ a{color:var(--vinho)}
 
 /* ---------- APP ---------- */
 #app{display:grid;grid-template-columns:232px 1fr;min-height:100%}
-#lateral{background:var(--vinho-fundo);color:var(--creme);padding:22px 14px;display:flex;flex-direction:column;gap:22px}
-#lateral .marca{align-items:center;gap:8px;margin:0 0 6px;width:100%;background:#120609;border-radius:10px;padding:14px 16px}
-#lateral .marca img{width:100%;max-width:160px;display:block}
+#lateral{background:#000;color:var(--creme);padding:22px 14px;display:flex;flex-direction:column;gap:22px}
+#lateral .marca{align-items:center;gap:8px;margin:2px 0 8px;width:100%;padding:0 4px}
+#lateral .marca img{width:100%;max-width:172px;display:block}
 #lateral .marca h1{color:var(--creme);font-size:21px}
 .menu{display:flex;flex-direction:column;gap:2px;flex:1}
 .menu button{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:none;border-radius:8px;background:transparent;
@@ -63,7 +68,7 @@ a{color:var(--vinho)}
 .menu button:hover{background:rgba(255,255,255,.07);color:var(--creme)}
 .menu button.ativo{background:linear-gradient(135deg,var(--ouro) 0%,var(--ouro-escuro) 100%);color:#fff;font-weight:500}
 .menu .ico{width:18px;text-align:center;font-size:14px;opacity:.9}
-.rodape-lateral{border-top:1px solid rgba(247,231,206,.16);padding-top:14px;font-size:12px;color:rgba(247,231,206,.7)}
+.rodape-lateral{border-top:1px solid rgba(247,231,206,.13);padding-top:14px;font-size:12px;color:rgba(247,231,206,.7)}
 .rodape-lateral strong{display:block;color:var(--creme);font-weight:500;font-size:13px}
 .rodape-lateral .papel{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:99px;background:rgba(207,189,150,.22);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
 
@@ -132,6 +137,14 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .chip{padding:7px 14px;border:1px solid var(--linha);border-radius:99px;background:var(--branco);cursor:pointer;font-size:12.5px;color:var(--tinta-fraca)}
 .chip:hover{border-color:var(--ouro-escuro)}
 .chip.ativo{background:var(--vinho);border-color:var(--vinho);color:#fff}
+
+/* permissoes */
+.tabela-permissoes th.col-marca,.tabela-permissoes td.col-marca{text-align:center;width:1%;white-space:nowrap}
+.tabela-permissoes th.col-marca{font-size:9.5px;letter-spacing:.06em;padding:11px 9px}
+.marcador{width:17px;height:17px;accent-color:var(--vinho);cursor:pointer;margin:0}
+.marcador:disabled{cursor:not-allowed;opacity:.42}
+.nota-permissoes{padding:15px 18px;border-top:1px solid var(--linha);font-size:12.5px;line-height:1.65;color:var(--tinta-fraca);background:#fdfaf4}
+.so-leitura{align-self:center}
 
 /* anexos do post */
 .zona{display:flex;flex-direction:column;gap:11px}
@@ -265,20 +278,29 @@ const S = {
   perfil:null, admin:false, aba:'visao',
   clientes:[], posts:[], faturas:[], prompts:[], conteudos:[], contratos:[], equipe:[], marcas:[],
   mes:new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),
-  filtro:{}, categoria:'Todas'
+  filtro:{}, categoria:'Todas', permissoes:{}
 };
 
 const ABAS = [
-  {id:'visao',     nome:'Visão geral', ico:'◆', admin:false},
-  {id:'clientes',  nome:'Clientes',    ico:'●', admin:false},
-  {id:'agenda',    nome:'Agenda',      ico:'▦', admin:false},
-  {id:'conteudo',  nome:'Conteúdo',    ico:'✎', admin:false},
-  {id:'marcas',    nome:'Marcas',      ico:'◈', admin:false},
-  {id:'prompts',   nome:'Prompts',     ico:'✦', admin:false},
-  {id:'financeiro',nome:'Financeiro',  ico:'₿', admin:true},
-  {id:'contratos', nome:'Contratos',   ico:'▣', admin:true},
-  {id:'equipe',    nome:'Equipe',      ico:'◇', admin:true}
+  {id:'visao',     nome:'Visão geral', ico:'◆', chave:null},
+  {id:'clientes',  nome:'Clientes',    ico:'●', chave:'clientes'},
+  {id:'agenda',    nome:'Agenda',      ico:'▦', chave:'agenda'},
+  {id:'conteudo',  nome:'Conteúdo',    ico:'✎', chave:'conteudo'},
+  {id:'marcas',    nome:'Marcas',      ico:'◈', chave:'marcas'},
+  {id:'prompts',   nome:'Prompts',     ico:'✦', chave:'prompts'},
+  {id:'financeiro',nome:'Financeiro',  ico:'₿', chave:'financeiro'},
+  {id:'contratos', nome:'Contratos',   ico:'▣', chave:'contratos'},
+  {id:'equipe',    nome:'Equipe',      ico:'◇', chave:'equipe'}
 ];
+
+const PADRAO_PERMISSOES = {clientes:true,agenda:true,conteudo:true,marcas:true,prompts:true,financeiro:false,contratos:false,equipe:false,editar:true};
+
+function pode(chave){
+  if (!chave) return true;
+  if (S.admin) return true;
+  return S.permissoes[chave] === true;
+}
+function podeEditar(){ return S.admin || S.permissoes.editar === true; }
 
 const CATEGORIAS = ['Copy e legendas','Carrossel e roteiro','Tráfego pago','Vídeo e Reels','Imagem e arte','Estratégia','Comercial','Relatórios','Interno'];
 const FERRAMENTAS = ['ChatGPT','Gemini','Claude','Veo','Sora','Midjourney','Canva','Outra'];
@@ -359,6 +381,11 @@ async function iniciar(sessao){
   }
   S.perfil = perfil;
   S.admin = String(perfil.papel || '').toUpperCase() === 'ADMIN';
+  try {
+    const p = typeof perfil.permissoes === 'string' ? JSON.parse(perfil.permissoes) : perfil.permissoes;
+    S.permissoes = (p && Object.keys(p).length) ? p : { ...PADRAO_PERMISSOES };
+  } catch(e){ S.permissoes = { ...PADRAO_PERMISSOES }; }
+  if (!S.admin && !pode(S.aba)) S.aba = 'visao';
 
   $('#eu-nome').textContent = perfil.nome || perfil.email;
   $('#eu-email').textContent = perfil.email || '';
@@ -370,7 +397,7 @@ async function iniciar(sessao){
 }
 
 function montarMenu(){
-  $('#menu').innerHTML = ABAS.filter(a => !a.admin || S.admin)
+  $('#menu').innerHTML = ABAS.filter(a => pode(a.chave))
     .map(a => `<button data-aba="${a.id}" class="${a.id===S.aba?'ativo':''}"><span class="ico">${a.ico}</span>${a.nome}</button>`).join('');
   $('#menu').querySelectorAll('button').forEach(b => b.onclick = () => {
     S.aba = b.dataset.aba; S.filtro = {}; montarMenu(); render();
@@ -379,25 +406,25 @@ function montarMenu(){
 }
 
 async function carregarTudo(){
-  const pedidos = [
+  const vazio = { data: [] };
+  const r = await Promise.all([
     sb.from('clientes').select('*').order('nome'),
-    sb.from('posts').select('*').order('data_prevista'),
-    sb.from('prompts').select('*').order('criado_em',{ascending:false}),
-    sb.from('conteudos').select('*').order('criado_em',{ascending:false}),
-    sb.from('marcas').select('*').order('nome')
-  ];
-  if (S.admin) {
-    pedidos.push(sb.from('faturas').select('*').order('vencimento'));
-    pedidos.push(sb.from('contratos').select('*').order('criado_em',{ascending:false}));
-    pedidos.push(sb.from('profiles').select('*').order('nome'));
-  }
-  const r = await Promise.all(pedidos);
+    pode('agenda')     ? sb.from('posts').select('*').order('data_prevista') : vazio,
+    pode('prompts')    ? sb.from('prompts').select('*').order('criado_em',{ascending:false}) : vazio,
+    pode('conteudo')   ? sb.from('conteudos').select('*').order('criado_em',{ascending:false}) : vazio,
+    pode('marcas')     ? sb.from('marcas').select('*').order('nome') : vazio,
+    pode('financeiro') ? sb.from('faturas').select('*').order('vencimento') : vazio,
+    pode('contratos')  ? sb.from('contratos').select('*').order('criado_em',{ascending:false}) : vazio,
+    pode('equipe')     ? sb.from('profiles').select('*').order('nome') : vazio
+  ]);
   S.clientes  = r[0].data || [];
   S.posts     = r[1].data || [];
   S.prompts   = r[2].data || [];
   S.conteudos = r[3].data || [];
   S.marcas    = r[4].data || [];
-  if (S.admin) { S.faturas = r[5].data || []; S.contratos = r[6].data || []; S.equipe = r[7].data || []; }
+  S.faturas   = r[5].data || [];
+  S.contratos = r[6].data || [];
+  S.equipe    = r[7].data || [];
 }
 
 async function recarregar(tabela){
@@ -417,7 +444,14 @@ async function recarregar(tabela){
    ============================================================ */
 function render(){
   const telas = { visao, clientes, agenda, conteudo, marcas: telaMarcas, prompts, financeiro, contratos, equipe };
+  if (!pode(ABAS.find(a => a.id === S.aba)?.chave)) S.aba = 'visao';
   $('#conteudo').innerHTML = telas[S.aba]();
+  if (!podeEditar()) {
+    $('#conteudo').querySelectorAll('[data-novo],[data-editar],[data-pagar],[data-favorito]').forEach(b => b.remove());
+    const cab = $('#conteudo .cabecalho');
+    if (cab && !cab.querySelector('.so-leitura'))
+      cab.insertAdjacentHTML('beforeend', '<span class="etiqueta e-cinza so-leitura">somente leitura</span>');
+  }
   ligarEventos();
 }
 
@@ -809,29 +843,69 @@ function etiquetaContrato(s){
 }
 
 /* ---------- EQUIPE ---------- */
+const MODULOS = ABAS.filter(a => a.chave).map(a => ({ chave:a.chave, nome:a.nome }));
+
+function permissoesDe(p){
+  try {
+    const x = typeof p.permissoes === 'string' ? JSON.parse(p.permissoes) : p.permissoes;
+    return (x && Object.keys(x).length) ? x : { ...PADRAO_PERMISSOES };
+  } catch(e){ return { ...PADRAO_PERMISSOES }; }
+}
+
 function equipe(){
   return `
   <div class="cabecalho">
-    <div><h2>Equipe</h2><p>Quem tem acesso ao painel e até onde enxerga</p></div>
+    <div><h2>Equipe e permissões</h2><p>Marque o que cada pessoa enxerga. A alteração vale na hora, no próximo acesso dela.</p></div>
   </div>
+
   <div class="painel">
-    <div class="painel-topo"><h3>Pessoas com acesso</h3></div>
-    <div class="rolagem"><table>
-      <thead><tr><th>Nome</th><th>Email</th><th>Acesso</th><th></th></tr></thead>
-      <tbody>${S.equipe.map(p => `<tr>
-        <td>${esc(p.nome||'—')}</td><td>${esc(p.email||'—')}</td>
-        <td><span class="etiqueta ${String(p.papel).toUpperCase()==='ADMIN'?'e-ouro':'e-cinza'}">${String(p.papel).toUpperCase()==='ADMIN'?'Administradora':'Colaborador'}</span></td>
-        <td>${p.id!==S.perfil.id?`<button class="btn secundario mini" data-papel="${p.id}" data-valor="${String(p.papel).toUpperCase()==='ADMIN'?'COLABORADOR':'ADMIN'}">
-          Tornar ${String(p.papel).toUpperCase()==='ADMIN'?'colaborador':'administradora'}</button>`:'<small style="color:var(--tinta-fraca)">você</small>'}</td>
-      </tr>`).join('')}</tbody></table></div>
+    <div class="painel-topo"><h3>Quem acessa o painel</h3><small style="color:var(--tinta-fraca)">${S.equipe.length} pessoa(s)</small></div>
+    <div class="rolagem"><table class="tabela-permissoes">
+      <thead><tr>
+        <th>Pessoa</th>
+        ${MODULOS.map(m => `<th class="col-marca">${m.nome}</th>`).join('')}
+        <th class="col-marca">Pode editar</th>
+        <th>Perfil</th>
+      </tr></thead>
+      <tbody>${S.equipe.map(p => {
+        const ehAdmin = String(p.papel||'').toUpperCase() === 'ADMIN';
+        const perm = permissoesDe(p);
+        const eu = p.id === S.perfil.id;
+        return `<tr>
+          <td>
+            <strong style="font-weight:500">${esc(p.nome || p.email || '—')}</strong>
+            ${eu ? ' <span class="etiqueta e-ouro">você</span>' : ''}
+            <br><small style="color:var(--tinta-fraca)">${esc(p.email||'')}</small>
+          </td>
+          ${MODULOS.map(m => `<td class="col-marca">
+            <input type="checkbox" class="marcador" data-pessoa="${p.id}" data-chave="${m.chave}"
+              ${(ehAdmin || perm[m.chave] === true) ? 'checked' : ''} ${ehAdmin ? 'disabled' : ''}>
+          </td>`).join('')}
+          <td class="col-marca">
+            <input type="checkbox" class="marcador" data-pessoa="${p.id}" data-chave="editar"
+              ${(ehAdmin || perm.editar === true) ? 'checked' : ''} ${ehAdmin ? 'disabled' : ''}>
+          </td>
+          <td style="white-space:nowrap">
+            <span class="etiqueta ${ehAdmin?'e-ouro':'e-cinza'}">${ehAdmin?'Administradora':'Colaborador'}</span>
+            ${!eu ? `<br><button class="btn secundario mini" style="margin-top:6px" data-papel="${p.id}" data-valor="${ehAdmin?'COLABORADOR':'ADMIN'}">
+              Tornar ${ehAdmin?'colaborador':'administradora'}</button>` : ''}
+          </td>
+        </tr>`;
+      }).join('')}</tbody></table></div>
+    <div class="nota-permissoes">
+      Administradora enxerga e edita tudo, por isso as caixas dela ficam travadas marcadas.
+      Desmarcar <strong>Pode editar</strong> deixa a pessoa em modo leitura: ela abre as telas liberadas, mas não salva nada.
+      O bloqueio vale também no banco de dados, não só na tela.
+    </div>
   </div>
+
   <div class="painel" style="margin-top:18px">
     <div class="painel-topo"><h3>Adicionar alguém</h3></div>
     <div style="padding:18px;line-height:1.7;font-size:13px;color:var(--tinta-fraca)">
-      Por segurança, a criação de senha é feita direto no Supabase, nunca aqui dentro.
-      Entre em <strong>Authentication</strong>, clique em <strong>Add user</strong>, informe o email e uma senha provisória.
-      A pessoa aparece nesta lista no primeiro acesso, já como colaborador, vendo clientes, agenda, conteúdo e prompts, sem enxergar valores.
-      Para liberar o financeiro, use o botão de acesso na tabela acima.
+      A criação de senha é feita no Supabase, nunca aqui dentro, por segurança.
+      Entre em <strong>Authentication</strong>, clique em Add user e informe o email com uma senha provisória.
+      A pessoa aparece nesta lista no primeiro acesso, já como colaboradora, com clientes, agenda, conteúdo, marcas e prompts liberados, e financeiro, contratos e equipe bloqueados.
+      Depois é só marcar ou desmarcar aqui.
     </div>
   </div>`;
 }
@@ -884,6 +958,7 @@ function ligarEventos(){
 
   c.querySelectorAll('[data-dia]').forEach(d => d.onclick = e => {
     if (e.target.closest('[data-post]')) return;
+    if (!podeEditar()) { recado('Seu acesso é somente leitura'); return; }
     abrirForm('post', null, { data_prevista: d.dataset.dia });
   });
   c.querySelectorAll('[data-post]').forEach(p => p.onclick = e => { e.stopPropagation(); abrirForm('post', p.dataset.post); });
@@ -908,7 +983,20 @@ function ligarEventos(){
 
   c.querySelectorAll('[data-papel]').forEach(b => b.onclick = async () => {
     await sb.from('profiles').update({ papel: b.dataset.valor }).eq('id', b.dataset.papel);
-    recado('Acesso atualizado'); recarregar('equipe');
+    recado('Perfil atualizado'); recarregar('equipe');
+  });
+
+  c.querySelectorAll('.marcador').forEach(cx => cx.onchange = async () => {
+    const pessoa = S.equipe.find(p => p.id === cx.dataset.pessoa);
+    if (!pessoa) return;
+    const perm = permissoesDe(pessoa);
+    perm[cx.dataset.chave] = cx.checked;
+    cx.disabled = true;
+    const { error } = await sb.from('profiles').update({ permissoes: perm }).eq('id', pessoa.id);
+    cx.disabled = false;
+    if (error) { cx.checked = !cx.checked; recado('Não consegui salvar: ' + error.message); return; }
+    pessoa.permissoes = perm;
+    recado(cx.checked ? 'Liberado' : 'Bloqueado');
   });
 }
 
