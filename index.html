@@ -123,6 +123,7 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .vazio strong{display:block;font-family:var(--serif);font-size:17px;color:var(--vinho);margin-bottom:6px;font-weight:600}
 
 .etiqueta{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;white-space:nowrap}
+.cliente{text-transform:uppercase;font-weight:600;letter-spacing:.012em}
 .e-verde{background:#e6f4ec;color:var(--ok)}
 .e-amarelo{background:#fdf3dd;color:var(--alerta)}
 .e-vermelho{background:#fdecea;color:var(--perigo)}
@@ -589,7 +590,7 @@ function visao(){
       <thead><tr><th>Data</th><th>Cliente</th><th>Tema</th><th>Formato</th><th>Responsável</th><th>Artes</th><th>Status</th></tr></thead>
       <tbody>${proximos.map(p => `<tr>
         <td class="num">${dataBr(p.data_prevista)}</td>
-        <td>${esc(nomeCliente(p.cliente_id))}</td>
+        <td class="cliente">${esc(nomeCliente(p.cliente_id))}</td>
         <td>${esc(p.tema || p.titulo || '—')}</td>
         <td>${esc(p.formato || '—')}</td>
         <td>${p.responsavel ? '<span class="etiqueta e-azul">'+esc(p.responsavel)+'</span>' : '<span class="etiqueta e-cinza">a definir</span>'}</td>
@@ -620,7 +621,7 @@ function clientes(){
   <div class="painel">${lista.length ? `<div class="rolagem"><table>
     <thead><tr><th>Cliente</th><th>Nicho</th><th>Contato</th>${S.admin?'<th>Mensalidade</th><th>Vence</th>':''}<th>Status</th><th></th></tr></thead>
     <tbody>${lista.map(c => `<tr>
-      <td><strong style="font-weight:500">${esc(c.nome)}</strong>${c.instagram?`<br><small style="color:var(--tinta-fraca)">${esc(c.instagram)}</small>`:''}</td>
+      <td><strong class="cliente">${esc(c.nome)}</strong>${c.instagram?`<br><small style="color:var(--tinta-fraca)">${esc(c.instagram)}</small>`:''}</td>
       <td>${esc(c.nicho||'—')}</td>
       <td>${esc(c.contato||'—')}${c.telefone?`<br><small style="color:var(--tinta-fraca)">${esc(c.telefone)}</small>`:''}</td>
       ${S.admin?`<td class="num">${dinheiro(c.valor_mensal)}</td><td class="num">${c.dia_vencimento?'dia '+c.dia_vencimento:'—'}</td>`:''}
@@ -660,7 +661,7 @@ function acessos(){
 
   ${chaves.length ? chaves.map(k => `
     <div class="painel" style="margin-bottom:16px">
-      <div class="painel-topo"><h3>${esc(nomeCliente(k))}</h3><small style="color:var(--tinta-fraca)">${porCliente[k].length} acesso(s)</small></div>
+      <div class="painel-topo"><h3 class="cliente">${esc(nomeCliente(k))}</h3><small style="color:var(--tinta-fraca)">${porCliente[k].length} acesso(s)</small></div>
       <div class="rolagem"><table>
         <thead><tr><th>Plataforma</th><th>Usuário ou email</th><th>Senha</th><th>Observações</th><th></th></tr></thead>
         <tbody>${porCliente[k].map(a => `<tr>
@@ -710,7 +711,7 @@ function agenda(){
     const doDia = posts.filter(p => p.data_prevista === iso);
     celulas += `<div class="dia ${fora?'fora':''} ${iso===hojeIso()?'hoje':''} ${doDia.length?'tem':''}" ${fora?'':`data-dia="${iso}"`}>
       <div class="numero">${d.getDate()}</div>
-      ${doDia.slice(0,3).map(p => `<div class="pino ${p.status==='PUBLICADO'?'pub':p.status==='APROVACAO'?'apr':''}" data-post="${p.id}" title="${esc(p.tema||p.titulo||'')}${qtdArquivos(p)?' · '+qtdArquivos(p)+' arquivo(s)':''}">${esc((p.formato||'')[0]||'•')} ${esc(nomeCliente(p.cliente_id).split(' ')[0])}: ${esc(p.tema||p.titulo||'')}${qtdArquivos(p)?'<span class="clipe">◗'+qtdArquivos(p)+'</span>':''}</div>`).join('')}
+      ${doDia.slice(0,3).map(p => `<div class="pino ${p.status==='PUBLICADO'?'pub':p.status==='APROVACAO'?'apr':''}" data-post="${p.id}" title="${esc(p.tema||p.titulo||'')}${qtdArquivos(p)?' · '+qtdArquivos(p)+' arquivo(s)':''}">${esc((p.formato||'')[0]||'•')} <b class="cliente">${esc(nomeCliente(p.cliente_id).split(' ')[0])}</b>: ${esc(p.tema||p.titulo||'')}${qtdArquivos(p)?'<span class="clipe">◗'+qtdArquivos(p)+'</span>':''}</div>`).join('')}
       ${doDia.length>3?`<div class="pino" style="background:#f1ece4;color:var(--tinta-fraca);border-left-color:#ccc">+${doDia.length-3}</div>`:''}
     </div>`;
   }
@@ -756,7 +757,7 @@ function conteudo(){
     <div class="ficha">
       <div class="ficha-topo"><h4>${esc(c.titulo)}</h4></div>
       <div class="meta">
-        <span class="etiqueta e-ouro">${esc(nomeCliente(c.cliente_id))}</span>
+        <span class="etiqueta e-ouro cliente">${esc(nomeCliente(c.cliente_id))}</span>
         <span class="etiqueta e-cinza">${esc(c.canal||'—')}</span>
         ${c.publicado_em?`<span class="etiqueta e-verde">${dataBr(c.publicado_em)}</span>`:''}
       </div>
@@ -850,7 +851,7 @@ function telaTemas(){
         <td><input type="checkbox" data-postado="${t.id}" ${t.postado?'checked':''}></td>
         <td style="${t.postado?'opacity:.5;text-decoration:line-through':''}">${esc(t.tema)}</td>
         <td><span class="etiqueta e-cinza">${esc(t.categoria||'—')}</span></td>
-        <td>${esc(nomeCliente(t.cliente_id))}</td>
+        <td class="cliente">${esc(nomeCliente(t.cliente_id))}</td>
         <td>${esc(t.formato||'—')}</td>
         <td><button class="btn mini secundario" data-copiar-texto="${esc(t.tema)}" data-aviso="Tema copiado">Copiar</button></td>
       </tr>`).join('')}</tbody></table></div>`
@@ -868,7 +869,7 @@ function telaMarcas(){
     <div class="cabecalho">
       <div>
         <h2>${esc(aberta.nome)}</h2>
-        <p>${esc(aberta.versao || 'Manual de marca')}${aberta.cliente_id ? ' · ' + esc(nomeCliente(aberta.cliente_id)) : ''}</p>
+        <p>${esc(aberta.versao || 'Manual de marca')}${aberta.cliente_id ? ' · <span class="cliente">' + esc(nomeCliente(aberta.cliente_id)) + '</span>' : ''}</p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn secundario mini" data-filtro-limpo="marca">Voltar</button>
@@ -942,7 +943,7 @@ function telaMarcas(){
       <div class="ficha-topo"><h4>${esc(m.nome)}</h4></div>
       ${cores.length ? `<div class="fita">${cores.map(c=>`<span style="background:${esc(c.hex)}"></span>`).join('')}</div>` : ''}
       <div class="meta">
-        ${m.cliente_id ? `<span class="etiqueta e-ouro">${esc(nomeCliente(m.cliente_id))}</span>` : '<span class="etiqueta e-cinza">Marca própria</span>'}
+        ${m.cliente_id ? `<span class="etiqueta e-ouro cliente">${esc(nomeCliente(m.cliente_id))}</span>` : '<span class="etiqueta e-cinza">Marca própria</span>'}
         ${m.versao ? `<span class="etiqueta e-cinza">${esc(m.versao)}</span>` : ''}
       </div>
       <div class="corpo">${esc(m.essencia || 'Sem resumo cadastrado')}</div>
@@ -1022,7 +1023,7 @@ function financeiro(){
   <div class="painel">${lista.length ? `<div class="rolagem"><table>
     <thead><tr><th>Cliente</th><th>Descrição</th><th>Valor</th><th>Vencimento</th><th>Situação</th><th></th></tr></thead>
     <tbody>${lista.map(f => `<tr>
-      <td>${esc(nomeCliente(f.cliente_id))}</td>
+      <td class="cliente">${esc(nomeCliente(f.cliente_id))}</td>
       <td>${esc(f.descricao||'—')}</td>
       <td class="num">${dinheiro(f.valor)}</td>
       <td class="num">${dataBr(f.vencimento)}</td>
@@ -1063,7 +1064,7 @@ function contratos(){
     <thead><tr><th>Título</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th>Vigência</th><th>Status</th><th></th></tr></thead>
     <tbody>${lista.map(c => `<tr>
       <td><strong style="font-weight:500">${esc(c.titulo)}</strong>${c.servicos?`<br><small style="color:var(--tinta-fraca)">${esc(c.servicos)}</small>`:''}</td>
-      <td>${esc(nomeCliente(c.cliente_id))}</td>
+      <td class="cliente">${esc(nomeCliente(c.cliente_id))}</td>
       <td><span class="etiqueta ${c.tipo==='CONTRATO'?'e-ouro':'e-azul'}">${c.tipo==='CONTRATO'?'Contrato':'Proposta'}</span></td>
       <td class="num">${dinheiro(c.valor)}<br><small style="color:var(--tinta-fraca)">${esc(c.periodicidade||'')}</small></td>
       <td class="num">${c.inicio?dataBr(c.inicio):'—'}${c.fim?' a '+dataBr(c.fim):''}</td>
