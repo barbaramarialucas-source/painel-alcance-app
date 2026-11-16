@@ -287,7 +287,7 @@ document.querySelectorAll('#logo-login, #logo-lateral').forEach(i => i.src = LOG
    ============================================================ */
 const S = {
   perfil:null, admin:false, aba:'visao',
-  clientes:[], posts:[], faturas:[], prompts:[], conteudos:[], contratos:[], equipe:[], marcas:[], acessos:[],
+  clientes:[], posts:[], faturas:[], prompts:[], conteudos:[], contratos:[], equipe:[], marcas:[], acessos:[], temas:[],
   mes:new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),
   filtro:{}, categoria:'Todas', permissoes:{}
 };
@@ -298,6 +298,7 @@ const ABAS = [
   {id:'acessos',   nome:'Acessos',     ico:'⚿', chave:'acessos'},
   {id:'agenda',    nome:'Agenda',      ico:'▦', chave:'agenda'},
   {id:'conteudo',  nome:'Conteúdo',    ico:'✎', chave:'conteudo'},
+  {id:'temas',     nome:'Copys prontos', ico:'☑', chave:'conteudo'},
   {id:'marcas',    nome:'Marcas',      ico:'◈', chave:'marcas'},
   {id:'prompts',   nome:'Prompts',     ico:'✦', chave:'prompts'},
   {id:'financeiro',nome:'Financeiro',  ico:'₿', chave:'financeiro'},
@@ -449,6 +450,7 @@ async function carregarTudo(){
     pode('agenda')     ? sb.from('posts').select('*').order('data_prevista') : vazio,
     pode('prompts')    ? sb.from('prompts').select('*').order('criado_em',{ascending:false}) : vazio,
     pode('conteudo')   ? sb.from('conteudos').select('*').order('criado_em',{ascending:false}) : vazio,
+    pode('conteudo')   ? sb.from('temas').select('*').order('categoria').order('tema') : vazio,
     pode('marcas')     ? sb.from('marcas').select('*').order('nome') : vazio,
     pode('financeiro') ? sb.from('faturas').select('*').order('vencimento') : vazio,
     pode('contratos')  ? sb.from('contratos').select('*').order('criado_em',{ascending:false}) : vazio,
@@ -459,11 +461,12 @@ async function carregarTudo(){
   S.posts     = r[1].data || [];
   S.prompts   = r[2].data || [];
   S.conteudos = r[3].data || [];
-  S.marcas    = r[4].data || [];
-  S.faturas   = r[5].data || [];
-  S.contratos = r[6].data || [];
-  S.equipe    = r[7].data || [];
-  S.acessos   = r[8].data || [];
+  S.temas     = r[4].data || [];
+  S.marcas    = r[5].data || [];
+  S.faturas   = r[6].data || [];
+  S.contratos = r[7].data || [];
+  S.equipe    = r[8].data || [];
+  S.acessos   = r[9].data || [];
 }
 
 async function recarregar(tabela){
@@ -482,7 +485,7 @@ async function recarregar(tabela){
    RENDER
    ============================================================ */
 function render(){
-  const telas = { visao, clientes, acessos, agenda, conteudo, marcas: telaMarcas, prompts, financeiro, contratos, equipe };
+  const telas = { visao, clientes, acessos, agenda, conteudo, temas: telaTemas, marcas: telaMarcas, prompts, financeiro, contratos, equipe };
   if (!pode(ABAS.find(a => a.id === S.aba)?.chave)) S.aba = 'visao';
   $('#conteudo').innerHTML = telas[S.aba]();
   if (!podeEditar()) {
@@ -742,6 +745,56 @@ function briefingDaMarca(m){
     'Siga este manual à risca na peça que eu pedir a seguir. Quando algo não estiver no manual, me pergunte em vez de decidir sozinho.'
   ].filter(Boolean);
   return partes.join('\n\n');
+}
+
+function telaTemas(){
+  const busca = (S.filtro.busca||'').toLowerCase();
+  const fc  = S.filtro.cliente || '';
+  const fca = S.filtro.categoria || '';
+  const fst = S.filtro.situacao || '';
+
+  const doCliente = S.temas.filter(t => !fc || t.cliente_id === fc);
+  const categorias = [...new Set(doCliente.map(t => t.categoria).filter(Boolean))].sort();
+
+  const lista = doCliente.filter(t =>
+    (!fca || t.categoria === fca) &&
+    (!fst || (fst === 'pendentes' ? !t.postado : !!t.postado)) &&
+    (!busca || (t.tema||'').toLowerCase().includes(busca) || (t.categoria||'').toLowerCase().includes(busca)));
+
+  const total = doCliente.length;
+  const feitos = doCliente.filter(t => t.postado).length;
+  const pct = total ? Math.round(feitos*100/total) : 0;
+
+  return `
+  <div class="cabecalho">
+    <div><h2>Copys prontos</h2><p>Banco de temas por cliente. Marque o que já foi publicado para não repetir.</p></div>
+    <span class="etiqueta e-ouro">${feitos} de ${total} postados</span>
+  </div>
+  <div class="barra">
+    <input class="busca" data-filtro="busca" placeholder="Buscar tema" value="${esc(S.filtro.busca||'')}">
+    <select data-filtro="cliente"><option value="">Todos os clientes</option>
+      ${S.clientes.map(c=>`<option value="${c.id}" ${fc===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select>
+    <select data-filtro="categoria"><option value="">Todas as categorias</option>
+      ${categorias.map(c=>`<option value="${esc(c)}" ${fca===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+    <select data-filtro="situacao"><option value="">Postados e pendentes</option>
+      <option value="pendentes" ${fst==='pendentes'?'selected':''}>Só pendentes</option>
+      <option value="postados" ${fst==='postados'?'selected':''}>Só postados</option></select>
+  </div>
+  ${total ? `<div class="painel" style="padding:10px 14px"><div style="height:6px;border-radius:99px;background:rgba(127,127,127,.18);overflow:hidden">
+      <div style="height:100%;width:${pct}%;background:currentColor;opacity:.55"></div></div>
+      <p style="margin:6px 0 0;font-size:12px;opacity:.7">${pct}% do banco deste filtro já foi publicado</p></div>` : ''}
+  ${lista.length ? `<div class="painel"><table>
+    <thead><tr><th style="width:38px"></th><th>Tema</th><th>Categoria</th><th>Cliente</th><th>Formato</th><th style="width:70px"></th></tr></thead>
+    <tbody>${lista.map(t => `
+      <tr>
+        <td><input type="checkbox" data-postado="${t.id}" ${t.postado?'checked':''}></td>
+        <td style="${t.postado?'opacity:.5;text-decoration:line-through':''}">${esc(t.tema)}</td>
+        <td><span class="etiqueta e-cinza">${esc(t.categoria||'—')}</span></td>
+        <td>${esc(nomeCliente(t.cliente_id))}</td>
+        <td>${esc(t.formato||'—')}</td>
+        <td><button class="btn mini secundario" data-copiar-texto="${esc(t.tema)}" data-aviso="Tema copiado">Copiar</button></td>
+      </tr>`).join('')}</tbody></table></div>`
+    : `<div class="painel"><div class="vazio"><strong>Nenhum tema aqui</strong>Ajuste os filtros ou carregue o banco de temas.</div></div>`}`;
 }
 
 function telaMarcas(){
@@ -1023,6 +1076,21 @@ function ligarEventos(){
       el.oninput = () => { S.filtro[campo] = el.value; const p = el.selectionStart; render();
         const novo = $(`[data-filtro="${campo}"]`); if (novo) { novo.focus(); novo.setSelectionRange(p,p); } };
     } else { el.onchange = () => { S.filtro[campo] = el.value; render(); }; }
+  });
+
+
+  c.querySelectorAll('[data-postado]').forEach(cx => cx.onchange = async () => {
+    if (!podeEditar()) { cx.checked = !cx.checked; return; }
+    const id = cx.dataset.postado, valor = cx.checked;
+    const t = S.temas.find(x => x.id === id);
+    if (t) { t.postado = valor; t.data_postagem = valor ? hojeIso() : null; }
+    render();
+    const { error } = await sb.from('temas')
+      .update({ postado: valor, data_postagem: valor ? hojeIso() : null }).eq('id', id);
+    if (error) {
+      if (t) { t.postado = !valor; t.data_postagem = null; }
+      recado('Não consegui salvar. Tente de novo.'); render();
+    }
   });
 
   c.querySelectorAll('[data-categoria]').forEach(b => b.onclick = () => { S.categoria = b.dataset.categoria; render(); });
