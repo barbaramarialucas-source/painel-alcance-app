@@ -450,7 +450,7 @@ async function carregarTudo(){
     pode('agenda')     ? sb.from('posts').select('*').order('data_prevista') : vazio,
     pode('prompts')    ? sb.from('prompts').select('*').order('criado_em',{ascending:false}) : vazio,
     pode('conteudo')   ? sb.from('conteudos').select('*').order('criado_em',{ascending:false}) : vazio,
-    pode('conteudo')   ? sb.from('temas').select('*').order('categoria').order('tema') : vazio,
+    pode('conteudo')   ? sb.from('temas').select('*').range(0,4999).order('categoria').order('tema') : vazio,
     pode('marcas')     ? sb.from('marcas').select('*').order('nome') : vazio,
     pode('financeiro') ? sb.from('faturas').select('*').order('vencimento') : vazio,
     pode('contratos')  ? sb.from('contratos').select('*').order('criado_em',{ascending:false}) : vazio,
