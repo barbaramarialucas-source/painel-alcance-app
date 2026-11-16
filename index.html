@@ -71,6 +71,25 @@ a{color:var(--vinho)}
 .ico3d{width:23px;height:23px;display:block;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45))}
 .menu button.ativo .ico3d{filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.3)) brightness(.62) saturate(1.15)}
 .rodape-lateral{border-top:1px solid rgba(247,231,206,.13);padding-top:14px;font-size:12px;color:rgba(247,231,206,.7)}
+.eu{display:flex;align-items:center;gap:10px}
+.eu .dados{min-width:0}
+.eu .dados span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.retrato{width:38px;height:38px;border-radius:50%;flex:none;object-fit:cover;display:grid;place-items:center;
+  border:1.5px solid var(--ouro-escuro);background:linear-gradient(135deg,var(--ouro) 0%,var(--ouro-escuro) 100%);
+  color:#2b1c0c;font-weight:600;font-size:14px;letter-spacing:.02em;overflow:hidden}
+.retrato img{width:100%;height:100%;object-fit:cover;display:block}
+.retrato.g{width:46px;height:46px;font-size:16px}
+.troca-retrato{position:relative;cursor:pointer;display:inline-block}
+.troca-retrato input{display:none}
+.troca-retrato .selo{position:absolute;right:-2px;bottom:-2px;width:17px;height:17px;border-radius:50%;
+  background:var(--vinho);color:#fff;font-size:10px;display:grid;place-items:center;border:2px solid var(--branco)}
+.arquivos-marca{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;padding:18px}
+.arquivo-marca{border:1px solid var(--linha);border-radius:12px;overflow:hidden;background:var(--branco)}
+.arquivo-marca img,.arquivo-marca video{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#f1ece4}
+.arquivo-marca .sem-previa{aspect-ratio:4/3}
+.pe-arquivo{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px}
+.pe-arquivo span{font-size:11.5px;color:var(--tinta-fraca);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-anexo video{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;background:#f1ece4}
 .rodape-lateral strong{display:block;color:var(--creme);font-weight:500;font-size:13px}
 .rodape-lateral .papel{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:99px;background:rgba(207,189,150,.22);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
 
@@ -258,8 +277,13 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
     <div class="marca"><img id="logo-lateral" alt="Alcance Marketing Digital"></div>
     <div class="menu" id="menu"></div>
     <div class="rodape-lateral">
-      <strong id="eu-nome">—</strong>
-      <span id="eu-email"></span><br>
+      <div class="eu">
+        <div class="retrato" id="eu-foto">—</div>
+        <div class="dados">
+          <strong id="eu-nome">—</strong>
+          <span id="eu-email"></span>
+        </div>
+      </div>
       <span class="papel" id="eu-papel"></span>
       <div style="margin-top:12px"><button class="btn secundario mini" id="btn-sair" style="color:var(--creme);border-color:rgba(247,231,206,.3)">Sair</button></div>
     </div>
@@ -376,6 +400,37 @@ function qtdArquivos(p){
   } catch(e){ return 0; }
 }
 
+function iniciais(p){
+  const base = String(p.nome || p.email || '?').trim();
+  const partes = base.split(/[\s.@_-]+/).filter(Boolean);
+  const a = (partes[0]||'?')[0] || '?';
+  const b = partes.length > 1 ? (partes[1]||'')[0] || '' : '';
+  return (a + b).toUpperCase();
+}
+
+function pintarRetrato(el, p){
+  if (!el) return;
+  if (p && p.foto_url) el.innerHTML = `<img src="${esc(p.foto_url)}" alt="${esc(p.nome||'')}">`;
+  else el.textContent = iniciais(p || {});
+}
+
+async function subirRetrato(pessoa, arquivo){
+  if (!arquivo) return;
+  if (!/^image\//.test(arquivo.type)) { recado('A foto precisa ser JPG ou PNG'); return; }
+  if (arquivo.size > 5 * 1024 * 1024) { recado('A foto precisa ter menos de 5 MB'); return; }
+  recado('Enviando a foto…');
+  const limpo = arquivo.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]/g,'-');
+  const caminho = `equipe/${pessoa.id}-${Date.now()}-${limpo}`;
+  const { error: e1 } = await sb.storage.from('painel').upload(caminho, arquivo, { upsert: true, contentType: arquivo.type });
+  if (e1) { recado('Erro ao enviar: ' + e1.message); return; }
+  const { data } = sb.storage.from('painel').getPublicUrl(caminho);
+  const { error: e2 } = await sb.from('profiles').update({ foto_url: data.publicUrl }).eq('id', pessoa.id);
+  if (e2) { recado('Erro ao salvar: ' + e2.message); return; }
+  if (pessoa.id === S.perfil.id) { S.perfil.foto_url = data.publicUrl; pintarRetrato($('#eu-foto'), S.perfil); }
+  recado('Foto atualizada');
+  await recarregar('equipe');
+}
+
 function nomeCliente(id){
   const c = S.clientes.find(c=>c.id===id);
   return c ? c.nome : 'Sem cliente';
@@ -428,6 +483,7 @@ async function iniciar(sessao){
   if (!S.admin && !pode(S.aba)) S.aba = 'visao';
 
   $('#eu-nome').textContent = perfil.nome || perfil.email;
+  pintarRetrato($('#eu-foto'), perfil);
   $('#eu-email').textContent = perfil.email || '';
   $('#eu-papel').textContent = S.admin ? 'Administradora' : 'Colaborador';
 
@@ -839,6 +895,28 @@ function telaMarcas(){
       ${aberta.observacoes ? `<div class="ficha"><h4>Observações</h4><div class="corpo aberto">${esc(aberta.observacoes)}</div></div>` : ''}
     </div>
 
+    ${(() => {
+      let arq = [];
+      try { arq = Array.isArray(aberta.arquivos) ? aberta.arquivos : JSON.parse(aberta.arquivos || '[]'); } catch(e){ arq = []; }
+      if (!arq.length) return '';
+      return `<div class="painel" style="margin-top:16px">
+        <div class="painel-topo"><h3>Arquivos da marca</h3><small style="color:var(--tinta-fraca)">${arq.length} arquivo(s)</small></div>
+        <div class="arquivos-marca">${arq.map(a => {
+          const u = a.url || '', n = a.nome || 'arquivo';
+          const ext = n.split('.').pop().toUpperCase();
+          const corpo = /\.(png|jpe?g|webp|gif|avif)$/i.test(u)
+            ? `<img src="${esc(u)}" alt="${esc(n)}">`
+            : /\.(mp4|mov|webm)$/i.test(u)
+            ? `<video src="${esc(u)}" controls preload="metadata"></video>`
+            : `<div class="sem-previa">${esc(ext)}</div>`;
+          return `<div class="arquivo-marca">${corpo}
+            <div class="pe-arquivo"><span title="${esc(n)}">${esc(n)}</span>
+            <a class="btn secundario mini" href="${esc(u)}" target="_blank" rel="noopener">Abrir</a></div>
+          </div>`;
+        }).join('')}</div>
+      </div>`;
+    })()}
+
     <div class="painel" style="margin-top:16px">
       <div class="painel-topo"><h3>Regras de aplicação</h3></div>
       <div class="regras">
@@ -1020,6 +1098,7 @@ function equipe(){
     <div class="painel-topo"><h3>Quem acessa o painel</h3><small style="color:var(--tinta-fraca)">${S.equipe.length} pessoa(s)</small></div>
     <div class="rolagem"><table class="tabela-permissoes">
       <thead><tr>
+        <th class="col-marca">Foto</th>
         <th>Pessoa</th>
         ${MODULOS.map(m => `<th class="col-marca">${m.nome}</th>`).join('')}
         <th class="col-marca">Pode editar</th>
@@ -1030,6 +1109,13 @@ function equipe(){
         const perm = permissoesDe(p);
         const eu = p.id === S.perfil.id;
         return `<tr>
+          <td class="col-marca">
+            ${S.admin ? `<label class="troca-retrato" title="Trocar a foto">
+              <span class="retrato g" data-retrato="${p.id}"></span>
+              <span class="selo">✚</span>
+              <input type="file" accept="image/png,image/jpeg,image/webp" data-foto="${p.id}">
+            </label>` : `<span class="retrato g" data-retrato="${p.id}"></span>`}
+          </td>
           <td>
             <strong style="font-weight:500">${esc(p.nome || p.email || '—')}</strong>
             ${eu ? ' <span class="etiqueta e-ouro">você</span>' : ''}
@@ -1170,6 +1256,18 @@ function ligarEventos(){
     recado('Baixa registrada'); recarregar('faturas');
   });
 
+  c.querySelectorAll('[data-retrato]').forEach(el => {
+    const pessoa = S.equipe.find(p => p.id === el.dataset.retrato);
+    if (pessoa) pintarRetrato(el, pessoa);
+  });
+
+  c.querySelectorAll('[data-foto]').forEach(ent => ent.onchange = async () => {
+    const pessoa = S.equipe.find(p => p.id === ent.dataset.foto);
+    const arquivo = ent.files && ent.files[0];
+    ent.value = '';
+    if (pessoa && arquivo) await subirRetrato(pessoa, arquivo);
+  });
+
   c.querySelectorAll('[data-papel]').forEach(b => b.onclick = async () => {
     await sb.from('profiles').update({ papel: b.dataset.valor }).eq('id', b.dataset.papel);
     recado('Perfil atualizado'); recarregar('equipe');
@@ -1241,7 +1339,10 @@ const FORMS = {
     {n:'sempre',r:'Sempre (um item por linha)',tipo:'area'},
     {n:'nunca',r:'Nunca (um item por linha)',tipo:'area'},
     {n:'palavras_proibidas',r:'Palavras que não entram',tipo:'area'},
-    {n:'observacoes',r:'Observações e regras legais',tipo:'area'}]},
+    {n:'observacoes',r:'Observações e regras legais',tipo:'area'},
+    {n:'arquivos',r:'Arquivos da marca',tipo:'arquivos',pasta:'marcas',
+     rotulo:'Clique ou arraste os arquivos da marca aqui',
+     dica:'Logotipo, manual, mockups e vídeos. Aceita JPG, PNG, MP4 e PDF, até 50 MB por arquivo'}]},
 
   prompt:{ tabela:'prompts', estado:'prompts', titulo:'Prompt', campos:[
     {n:'titulo',r:'Título',obrigatorio:true},
@@ -1288,9 +1389,9 @@ function abrirForm(qual, id, pre){
       <div class="zona" id="zona-arquivos">
         <div class="galeria" id="galeria"></div>
         <label class="solta" id="solta">
-          <input type="file" id="entrada-arquivos" multiple accept="image/*,application/pdf,video/*" hidden>
-          <strong>Clique ou arraste as artes aqui</strong>
-          <small>Carrossel: selecione todas as imagens de uma vez, na ordem dos slides</small>
+          <input type="file" id="entrada-arquivos" multiple accept=".jpg,.jpeg,.png,.webp,.gif,.avif,.mp4,.mov,.pdf,image/*,video/mp4,video/quicktime,application/pdf" hidden>
+          <strong>${c.rotulo || 'Clique ou arraste as artes aqui'}</strong>
+          <small>${c.dica || 'Carrossel: selecione todas as imagens de uma vez, na ordem dos slides'}</small>
         </label>
         <div id="progresso-envio" class="progresso" hidden></div>
       </div>`;
@@ -1330,6 +1431,8 @@ function abrirForm(qual, id, pre){
         <span class="ordem">${i+1}</span>
         ${/\.(png|jpe?g|webp|gif|avif)$/i.test(a.url)
           ? `<img src="${esc(a.url)}" alt="${esc(a.nome||'')}">`
+          : /\.(mp4|mov|webm)$/i.test(a.url)
+          ? `<video src="${esc(a.url)}" muted playsinline preload="metadata"></video>`
           : `<div class="sem-previa">${esc((a.nome||'arquivo').split('.').pop().toUpperCase())}</div>`}
         <button type="button" class="tirar" data-tirar="${i}" title="Remover">×</button>
         <span class="nome-anexo">${esc(a.nome || '')}</span>
@@ -1362,13 +1465,18 @@ function abrirForm(qual, id, pre){
 
   async function subirArquivos(lista){
     const barra = $('#progresso-envio');
+    const pasta = (campos.find(c => c.tipo === 'arquivos') || {}).pasta || 'artes';
     const total = lista.length;
     let feitos = 0;
     barra.hidden = false;
     for (const arquivo of lista) {
+      if (arquivo.size > 50 * 1024 * 1024) {
+        barra.textContent = `${arquivo.name} passa de 50 MB e não foi enviado`;
+        continue;
+      }
       barra.textContent = `Enviando ${feitos+1} de ${total}: ${arquivo.name}`;
       const limpo = arquivo.name.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9._-]/g,'-');
-      const caminho = `artes/${Date.now()}-${Math.random().toString(36).slice(2,7)}-${limpo}`;
+      const caminho = `${pasta}/${Date.now()}-${Math.random().toString(36).slice(2,7)}-${limpo}`;
       const { error } = await sb.storage.from('painel').upload(caminho, arquivo, { upsert: false, contentType: arquivo.type || undefined });
       if (error) { barra.textContent = 'Erro ao enviar ' + arquivo.name + ': ' + error.message; return; }
       const { data } = sb.storage.from('painel').getPublicUrl(caminho);
